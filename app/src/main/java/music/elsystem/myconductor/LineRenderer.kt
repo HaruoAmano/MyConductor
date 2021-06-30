@@ -3,14 +3,34 @@ package music.elsystem.myconductor
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
+import android.util.Log
+import music.elsystem.myconductor.MainActivity.Companion.oneBarDots
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.math.cos
+import kotlin.math.sin
 
-private var mProgramId = 0
-private val mViewAndProjectionMatrix = FloatArray(16)
+class LineRenderer : GLSurfaceView.Renderer {
+    private var mProgramId = 0
+    private val mViewAndProjectionMatrix = FloatArray(16)
+    private var logicalX = IntArray(oneBarDots)
+    private var logicalY = IntArray(oneBarDots)
+    private var vertices = FloatArray(oneBarDots * 2)
+    private val ut = Util()
 
-class GlTrajectoryRenderer : GLSurfaceView.Renderer {
+
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
+        //論理的頂点座標の作成。
+        Log.i("onSurfaceCreated","")
+        val lp = LogicalPosition()
+        var vertexId = 0
+        //LogicalPositionはlogicalXとlogicalYの２つの戻り値を返すためPairでまとめられている。
+        logicalX = lp.getLogicalPosition().first
+        logicalY = lp.getLogicalPosition().second
+        for (i in 0 until oneBarDots) {
+            vertices[vertexId++] = ut.coX(logicalX[i])
+            vertices[vertexId++] = ut.coY(logicalY[i])
+        }
         //画面クリア時の色の設定。（０～1を指定する。）
         GLES20.glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
         //バーテックスシェーダーのコンパイル
@@ -34,21 +54,11 @@ class GlTrajectoryRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceChanged(gl10: GL10, width: Int, height: Int) {
-        //これは ビューポート変換 をする時の幅と高さを設定する。ここでは x, y 座標に 0 を、
-        //幅と高さには width と height をそのまま渡しているので、Android の画面全体を
-        //ビューポートとして設定していることになる。
+        Log.i("onSurfaceChanged","")
         GLES20.glViewport(0, 0, width, height)
         val projectionMatrix = FloatArray(16)
         val viewMatrix = FloatArray(16)
-
-        //次にバーテックスシェーダの座標変換の記事で扱った ビュー座標変換 と 射影変換 をするための変換行列を生成して、
-        // その 2 つを掛け合わせてまとめている。
-
-        //カメラの位置は (0, 0, 1)、カメラの注視点は (0, 0, 0)、そしてカメラの上方向は (0, 1, 0) になっているので、
-        // 原点より少し手前の位置から原点を見ているカメラを配置していることになる。
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
-        // そして射影変換については、
-        // 原点を中心として幅が width、高さが height の長方形があって、その奥行は 2 の立方体をクリッピング空間としている。
         Matrix.orthoM(
             projectionMatrix,
             0,
@@ -59,14 +69,13 @@ class GlTrajectoryRenderer : GLSurfaceView.Renderer {
             0f,
             2f
         )
-        //上記、ビュー座標変換 と 射影変換を掛け合わせてまとめている。
         Matrix.multiplyMM(mViewAndProjectionMatrix, 0, projectionMatrix, 0, viewMatrix, 0)
     }
 
     override fun onDrawFrame(gl10: GL10) {
-        //画面クリア （最初に GLES20.glClearColor で設定した色で初期化される。）
+        //画面クリア
+        //最初に GLES20.glClearColor で設定した色で初期化される。
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        //描画*******************************************************************
         //ワールド座標変換行列の生成～転送（頂点・カラーデータについてはdrawLine関数で行う。
         val worldMatrix = FloatArray(16)
         Matrix.setIdentityM(worldMatrix, 0)
@@ -76,83 +85,25 @@ class GlTrajectoryRenderer : GLSurfaceView.Renderer {
         //アプリケーション内のメモリから ビュー座標変換・射影変換、ワールド変換をGPU へデータを転送するための処理。
         GLES20.glUniformMatrix4fv(uniLoc1, 1, false, mViewAndProjectionMatrix, 0)
         GLES20.glUniformMatrix4fv(uniLoc2, 1, false, worldMatrix, 0)
-        //頂点およびカラーデータの生成～転送*****************************************
-        //一小節分の頂点を配置するため、辺の数だけ繰り返す。
-//        for (i in 0 until rhythm * 2)
-        //現在は１辺のみ
-        //メッシュの描画を行う際はmeshをtrueにする
-        var mesh = false
-        for (i in 0 until 1) {
-            drawLine(mesh)
-        }
-        mesh = true
-        drawLine(mesh)
-    }
-        //**********************************************************************
-
-    fun drawLine (mesh:Boolean) {
-        val util = Util()
-        var color = FloatArray(4)
+        //OpenGLでの頂点座標作成を指示*******************************************************************
         val attPositionLocation = GLES20.glGetAttribLocation(mProgramId, "position")
-        val uniLoc3 = GLES20.glGetUniformLocation(mProgramId, "color")
         //頂点アトリビュートについてはそれを有効化する必要がある。
         GLES20.glEnableVertexAttribArray(attPositionLocation)
-        //工事中////////////////////////////////////////////////////////
-        if (mesh) {
-            //平行線メッシュ
-            val meshVertex = FloatArray(72) //５本に一本２回線を引くことでグラフらしくしている。その分（24個）Arrayを追加
-            var indexX = 1
-            for (i in 0 until 36 step 4) {
-                meshVertex[i] = util.coX(0f)
-                meshVertex[i+1] = util.coY(100f * indexX)
-                meshVertex[i+2] = util.coX(1000f)
-                meshVertex[i+3] = util.coY(100f * indexX)
-                indexX++
-            }
-            //垂直線メッシュ
-            var indexY = 1
-            for (i in 36 until 72 step 4) {
-                meshVertex[i] = util.coX(100f * indexY)
-                meshVertex[i+1] = util.coY(0f)
-                meshVertex[i+2] = util.coX(100f * indexY)
-                meshVertex[i+3] = util.coY(1000f)
-                indexY++
-            }
-            GLES20.glVertexAttribPointer(
-                attPositionLocation,
-                2,
-                GLES20.GL_FLOAT,
-                false,
-                0,
-                util.convert(meshVertex))
-            color = floatArrayOf(0f, 1f, 0f, 1f) //rgba
-            GLES20.glUniform4fv(uniLoc3, 1, color, 0)
-            //描画処理
-            GLES20.glDrawArrays(GLES20.GL_LINES, 0, 36)
-            GLES20.glDisableVertexAttribArray(attPositionLocation)
-        } else {
-            val trajectory = Trajectory()
-
-            //論理値としての論理的Y配列を生成。
-            val lvDots = LogicalVerticalDots()
-            //////////////////////////////////////////////////////////////
-            //指揮の軌跡となる配列を生成
-            trajectory.getVertices(lvDots.mkLogicalVDotsArray())
-            color = floatArrayOf(1f, 1f, 1f, 1f) //rgba
-            GLES20.glVertexAttribPointer(
-                attPositionLocation,
-                2,
-                GLES20.GL_FLOAT,
-                false,
-                0,
-                util.convert(trajectory.getVertices(lvDots.mkLogicalVDotsArray())))
-            //描画処理
-            GLES20.glUniform4fv(uniLoc3, 1, color, 0)
-            val dotNum = util.getHalfbeatDots()
-            GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, dotNum)
-            GLES20.glDisableVertexAttribArray(attPositionLocation)
-        }
+        //アプリケーション内のメモリから GPU へデータを転送するための処理。
+        GLES20.glVertexAttribPointer(
+            attPositionLocation,
+            2,
+            GLES20.GL_FLOAT,
+            false,
+            0,
+            ut.convert(vertices)
+        )
+        //描画
+        //最終的にはFUNで書くべし！
+        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, oneBarDots)
+//        GLES20.glDisableVertexAttribArray(attPositionLocation)
     }
+
     companion object {
         //バーテックスシェーダ
         //シェーダが実行される時はこの中のmain関数が呼び出される。
@@ -176,9 +127,8 @@ class GlTrajectoryRenderer : GLSurfaceView.Renderer {
         //この変数に色を代入するとその色をフラグメントの色として、次の処理に渡されていく。
         //※precision mediump float; の部分はおまじない的に考えてよい。
         const val sFragmentShaderSource = "precision mediump float;" +
-                "uniform vec4 color;" +
                 "void main() {" +
-                "  gl_FragColor = color;" +
+                "  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);" +
                 "}"
     }
 }
