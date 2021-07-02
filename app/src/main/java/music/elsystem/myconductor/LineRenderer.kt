@@ -4,33 +4,17 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
-import music.elsystem.myconductor.MainActivity.Companion.oneBarDots
+import music.elsystem.myconductor.MainActivity.Companion.opglLogicalX
+import music.elsystem.myconductor.MainActivity.Companion.opglLogicalY
+import music.elsystem.myconductor.MainActivity.Companion.opglOneBarDots
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import kotlin.math.cos
-import kotlin.math.sin
 
 class LineRenderer : GLSurfaceView.Renderer {
     private var mProgramId = 0
     private val mViewAndProjectionMatrix = FloatArray(16)
-    private var logicalX = IntArray(oneBarDots)
-    private var logicalY = IntArray(oneBarDots)
-    private var vertices = FloatArray(oneBarDots * 2)
     private val ut = Util()
-
-
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
-        //論理的頂点座標の作成。
-        Log.i("onSurfaceCreated","")
-        val lp = LogicalPosition()
-        var vertexId = 0
-        //LogicalPositionはlogicalXとlogicalYの２つの戻り値を返すためPairでまとめられている。
-        logicalX = lp.getLogicalPosition().first
-        logicalY = lp.getLogicalPosition().second
-        for (i in 0 until oneBarDots) {
-            vertices[vertexId++] = ut.coX(logicalX[i])
-            vertices[vertexId++] = ut.coY(logicalY[i])
-        }
         //画面クリア時の色の設定。（０～1を指定する。）
         GLES20.glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
         //バーテックスシェーダーのコンパイル
@@ -90,6 +74,13 @@ class LineRenderer : GLSurfaceView.Renderer {
         //頂点アトリビュートについてはそれを有効化する必要がある。
         GLES20.glEnableVertexAttribArray(attPositionLocation)
         //アプリケーション内のメモリから GPU へデータを転送するための処理。
+        //論理的頂点座標の作成。
+        val vertices = FloatArray(opglOneBarDots * 2)
+        var vertexId = 0
+        for (i in 0 until opglOneBarDots) {
+            vertices[vertexId++] = ut.coX(opglLogicalX[i])
+            vertices[vertexId++] = ut.coY(opglLogicalY[i])
+        }
         GLES20.glVertexAttribPointer(
             attPositionLocation,
             2,
@@ -99,8 +90,7 @@ class LineRenderer : GLSurfaceView.Renderer {
             ut.convert(vertices)
         )
         //描画
-        //最終的にはFUNで書くべし！
-        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, oneBarDots)
+        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, opglOneBarDots)
 //        GLES20.glDisableVertexAttribArray(attPositionLocation)
     }
 

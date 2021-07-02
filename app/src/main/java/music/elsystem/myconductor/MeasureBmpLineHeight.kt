@@ -1,13 +1,13 @@
 package music.elsystem.myconductor
 
+import android.graphics.Bitmap
 import android.util.Log
-import music.elsystem.myconductor.MainActivity.Companion.bmpBeat
 
 //ビットマップデータより各拍および裏拍の最上点および最下点を取得する関数。
 //結果はログ出力し、列挙型データに手で登録する。
 //登録後は決して動かさない！！！！！！
 class MeasureBmpLineHeight() {
-    fun measureBmpLineHeight(beat: Int) {
+    fun measureBmpLineHeight(bmpBeat: Bitmap?, rhythm: Int) {
         var intArgb = 0
         var strRgb = ""
         //現在6拍子をMAXと想定している。
@@ -30,7 +30,7 @@ class MeasureBmpLineHeight() {
             "ff7fff"
         )
         bmpBeat?.let {
-            for (i in 0 until beat * 2) {
+            for (i in 0 until rhythm * 2) {
                 for (y in 0..2999) {
                     for (x in 0..2999) {
                         intArgb = it.getPixel(x, y)

@@ -3,7 +3,11 @@ package music.elsystem.myconductor
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import music.elsystem.myconductor.MainActivity.Companion.oneBarDots
+import music.elsystem.myconductor.MainActivity.Companion.opglAnimGradation
+import music.elsystem.myconductor.MainActivity.Companion.opglAnimRadius
+import music.elsystem.myconductor.MainActivity.Companion.opglLogicalX
+import music.elsystem.myconductor.MainActivity.Companion.opglLogicalY
+import music.elsystem.myconductor.MainActivity.Companion.opglOneBarDots
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.cos
@@ -13,16 +17,8 @@ class GlRenderer : GLSurfaceView.Renderer {
     private var mProgramId = 0
     private val mViewAndProjectionMatrix = FloatArray(16)
     private var frameCount = 0
-    private var logicalX = IntArray(oneBarDots)
-    private var logicalY = IntArray(oneBarDots)
     private val util = Util()
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
-        //論理的頂点座標の作成。
-        //実際にはBEAT,TEMPO変更時に呼び出すこととなる。
-        val lp = LogicalPosition()
-        //LogicalPositionはlogicalXとlogicalYの２つの戻り値を返すためPairでまとめられている。
-        logicalX = lp.getLogicalPosition().first
-        logicalY = lp.getLogicalPosition().second
         //画面クリア時の色の設定。（０～1を指定する。）
         GLES20.glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
         //バーテックスシェーダーのコンパイル
@@ -89,20 +85,18 @@ class GlRenderer : GLSurfaceView.Renderer {
         GLES20.glUniformMatrix4fv(uniLoc2, 1, false, worldMatrix, 0)
         //OpenGLでの頂点座標作成を指示*******************************************************************
         var l = 0
-        val gradation = Gradation()
-        var radiusArray = gradation.mkRadiusArray()
         //１フレーム分（パラパラ漫画一枚分）の描画を行う。
-        for (i in 0 until oneBarDots) {
-            l = (oneBarDots + frameCount - i) % oneBarDots
+        for (i in 0 until opglOneBarDots) {
+            l = (opglOneBarDots + frameCount - i) % opglOneBarDots
             drawCircle(
-                logicalX[i],
-                logicalY[i],
-                16, radiusArray[l],
-                1f, 1f, 1f, 1f
+                opglLogicalX[i],
+                opglLogicalY[i],
+                16, opglAnimRadius[l],
+                opglAnimGradation[l], opglAnimGradation[l], 1f, 1f
             )
         }
         frameCount++
-        if (frameCount >= oneBarDots) {
+        if (frameCount >= opglOneBarDots) {
             frameCount = 0
         }
         //メッシュの描画を行う（テスト用）場合に呼ぶ。

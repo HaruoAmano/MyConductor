@@ -50,6 +50,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
+        android:background="@color/screen_back"
         app:layout_constraintBottom_toBottomOf="@id/guidelineH2"
         app:layout_constraintEnd_toEndOf="@id/guidelineV2"
         app:layout_constraintStart_toStartOf="@id/guidelineV1"
@@ -128,34 +129,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:padding="0dp"/>
     ////　下段　////////////////////////////////////////////////
+
     <Spinner
         android:id="@+id/spnBeat"
         android:layout_width="60dp"
         android:layout_height="40dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/tv_motion_y_disc"/>
+    <TextView
+        android:id="@+id/tv_motion_y_disc"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="motion y"
         app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnGravity"
-        android:textAlignment="center"/>
-
-    <Button
-        android:id="@+id/btnGravity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="gravity"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnStop"
         app:layout_constraintStart_toEndOf="@+id/spnBeat"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
-    <Button
-        android:id="@+id/btnStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="sound"
+        app:layout_constraintEnd_toStartOf="@+id/spnMotionY"/>
+
+    <Spinner
+        android:id="@+id/spnMotionY"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="#fff"
+        android:backgroundTint="#2F313C"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnGravity"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
+        app:layout_constraintStart_toEndOf="@+id/tv_motion_y_disc"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

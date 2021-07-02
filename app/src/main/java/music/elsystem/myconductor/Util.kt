@@ -20,6 +20,14 @@ class Util() {
     fun coY(y: Int): Float {
         return ((logicalHeight -1 - y) - (logicalHeight / 2f)) * (surfaceHeight/logicalHeight.toFloat())
     }
+    fun halfBeatDots(tempo:Int) :Int {
+        val halfBeatDots = (1800f / tempo.toFloat()).toInt()
+        return halfBeatDots
+    }
+    fun  oneBarDots(tempo:Int, rhythm:Int) :Int {
+        val oneBarDots = halfBeatDots(tempo) * 2 * rhythm
+        return oneBarDots
+    }
 
     //コーディングしたプリミティブ型を GPU に転送するためにバッファ型に
     // 変換するためのユーティリティクラスで、
