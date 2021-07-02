@@ -12,9 +12,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.1" />
+        app:layout_constraintGuide_percent="0.0" />
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.6" />
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineH2_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -67,35 +73,15 @@
         app:layout_constraintTop_toTopOf="@id/guidelineH2"
         app:layout_constraintEnd_toStartOf="@+id/guidelineV2"/>
     ////　上段　////////////////////////////////////////////////
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:text="@string/lower"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button2"
-        android:padding="0dp"/>
-    <Button
-        android:id="@+id/button2"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:text="@string/tinyLower"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintStart_toEndOf="@+id/button1"
-        app:layout_constraintEnd_toStartOf="@+id/spn_tempo_1"
-        android:padding="0dp"/>
     <Spinner
         android:id="@+id/spn_tempo_1"
         android:layout_width="100dp"
         android:layout_height="40dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintStart_toEndOf="@+id/button2"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/spn_tempo_2"
         android:padding="0dp"/>
     <Spinner
@@ -104,31 +90,11 @@
         android:layout_height="40dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
         app:layout_constraintStart_toEndOf="@+id/spn_tempo_1"
-        app:layout_constraintEnd_toStartOf="@+id/button3"/>
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:text="@string/tinyHigher"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintStart_toEndOf="@+id/spn_tempo_2"
-        app:layout_constraintEnd_toStartOf="@+id/button4"
-        android:padding="0dp"/>
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:text="@string/higher"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintStart_toEndOf="@+id/button3"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="0dp"/>
-    ////　下段　////////////////////////////////////////////////
+        app:layout_constraintEnd_toEndOf="parent"/>
+    ////　中段　////////////////////////////////////////////////
 
     <Spinner
         android:id="@+id/spnBeat"
@@ -136,8 +102,8 @@
         android:layout_height="40dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/tv_motion_y_disc"/>
     <TextView
@@ -145,8 +111,8 @@
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:text="motion y"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
         app:layout_constraintStart_toEndOf="@+id/spnBeat"
         app:layout_constraintEnd_toStartOf="@+id/spnMotionY"/>
 
@@ -156,9 +122,49 @@
         android:layout_height="40dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintStart_toEndOf="@+id/tv_motion_y_disc"
+        app:layout_constraintEnd_toEndOf="parent"/>
+    ////　下段　////////////////////////////////////////////////
+    <TextView
+        android:id="@+id/tv_radius_disc"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="dot action"
         app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tv_motion_y_disc"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/spnRadius"/>
+    <Spinner
+        android:id="@+id/spnRadius"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="#fff"
+        android:backgroundTint="#2F313C"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintStart_toEndOf="@+id/tv_radius_disc"
+        app:layout_constraintEnd_toStartOf="@+id/tv_gradation_disc"/>
+    <TextView
+        android:id="@+id/tv_gradation_disc"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="残像"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/spnRadius"
+        app:layout_constraintEnd_toStartOf="@+id/spnGradation"/>
+
+    <Spinner
+        android:id="@+id/spnGradation"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:background="#fff"
+        android:backgroundTint="#2F313C"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tv_gradation_disc"
         app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

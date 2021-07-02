@@ -15,12 +15,13 @@ import kotlin.math.pow
 
 class MainActivity : AppCompatActivity() {
     private val bd by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    var tempo2 = mutableListOf<Int>()
-    var isStarted = false
     var bmpBeat: Bitmap? = null
+    //リスナーインターフェースで使用する項目
     var rhythm = 4
     var tempo = 60
     var motionYMultiplier = 1.0
+    var radiusMultiplier = 1.0
+    var gradationMultiplier = 1.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +78,7 @@ class MainActivity : AppCompatActivity() {
                 val spinnerParent = parent as Spinner
                 val tempo1item = spinnerParent.selectedItem as String
                 //tempo2のリスト内容の設定
-                tempo2 = when (tempo1item) {
+                val tempo2 = when (tempo1item) {
                     "Grave" -> tempo2list.filter { it in 30..44 } as MutableList<Int>
                     "Largo" -> tempo2list.filter { it in 38..52 } as MutableList<Int>
                     "Adagio" -> tempo2list.filter { it in 46..60 } as MutableList<Int>
@@ -155,7 +156,7 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-        //********* spnRhythmスピナーの設定（2beat,4beat etc...) *********************
+        //********* spnMotionYスピナーの設定（タクトの跳ね具合) *********************
         val motionYList = listOf(
             0.5,0.8,1.0, 1.2,1.5,1.8,2.0,2.5,3.0
         )
@@ -180,7 +181,56 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-
+        //********* spnRadiusスピナーの設定（ドットが大きくなる速さ) *********************
+        val radiusList = listOf(
+            0.1,0.2,0.3,0.4,0.5,0.6,0.7
+        )
+        // spinner に adapter をセット
+        bd.spnRadius.adapter =
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, radiusList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        bd.spnRadius.setSelection(4)
+        // リスナーを登録
+        bd.spnRadius.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val spinnerParent = parent as Spinner
+                radiusMultiplier = spinnerParent.selectedItem as Double
+                opglArrayCreate()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+        //********* spnGradationスピナーの設定（ドットが大きくなる速さ) *********************
+        val gradationList = listOf(
+            0.1,0.2,0.3,0.4,0.5,0.6,0.7,1.0,1.5,2.0
+        )
+        // spinner に adapter をセット
+        bd.spnGradation.adapter =
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, gradationList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        bd.spnGradation.setSelection(4)
+        // リスナーを登録
+        bd.spnGradation.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val spinnerParent = parent as Spinner
+                gradationMultiplier = spinnerParent.selectedItem as Double
+                opglArrayCreate()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
         //ビットマップ画像新規作成時以外は常にコメント。
         //ビットマップの生成にはActivityの継承が必要みたいなので、
         //ビットマップに対する処理はメインアクティビティに配置する。
@@ -203,7 +253,7 @@ class MainActivity : AppCompatActivity() {
 //        var radiusArray = FloatArray(ut.oneBarDots(tempo,rhythm))
         opglLogicalX = lpArray.getLogicalPosArray(bmpBeat).first.toMutableList()
         opglLogicalY = lpArray.getLogicalPosArray(bmpBeat).second.toMutableList()
-        val animArray = AnimationArray(rhythm,tempo)
+        val animArray = AnimationArray(rhythm,tempo,radiusMultiplier,gradationMultiplier)
         opglAnimRadius = animArray.radiusArray().toMutableList()
         opglAnimGradation = animArray.gradationArray().toMutableList()
         opglOneBarDots = ut.oneBarDots(tempo,rhythm)
@@ -221,7 +271,9 @@ class MainActivity : AppCompatActivity() {
         var surfaceHeight = 0
         //OpenGlへ渡すための変数
         var opglOneBarDots = 0
-        //配列（ミュータブルリストをすることでobject（他モジュールから参照可能）でありながら可変とすることができる。
+        //描画中かどうか（
+        var isStarted = false
+        //配列（ミュータブルリストとすることでobject（他モジュールから参照可能）でありながら可変とすることができる。
         var opglLogicalX: MutableList<Int> = mutableListOf()
         var opglLogicalY: MutableList<Int> = mutableListOf()
         var opglAnimRadius: MutableList<Float> = mutableListOf()

@@ -91,7 +91,8 @@ class GlRenderer : GLSurfaceView.Renderer {
             drawCircle(
                 opglLogicalX[i],
                 opglLogicalY[i],
-                16, opglAnimRadius[l],
+//                16, opglLogicalY[i] / 100f,
+                16, opglAnimRadius[l] *opglLogicalY[i] / 2000f,
                 opglAnimGradation[l], opglAnimGradation[l], 1f, 1f
             )
         }
