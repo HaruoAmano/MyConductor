@@ -109,8 +109,8 @@
     <TextView
         android:id="@+id/tv_motion_y_disc"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="motion y"
+        android:layout_height="wrap_content"
+        android:text="motion y\nタクトの跳ね具合\n大きいほど\nレッジェーロ"
         app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
         app:layout_constraintStart_toEndOf="@+id/spnBeat"
@@ -130,8 +130,8 @@
     <TextView
         android:id="@+id/tv_radius_disc"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="dot action"
+        android:layout_height="wrap_content"
+        android:text="radiusMultiplier\n（球のしっぽ）\n大きいほど\nしぼむのが早い"
         app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -149,8 +149,8 @@
     <TextView
         android:id="@+id/tv_gradation_disc"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:text="残像"
+        android:layout_height="wrap_content"
+        android:text="残像\n小さい程\n早く薄くなる"
         app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/spnRadius"

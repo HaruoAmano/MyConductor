@@ -30,8 +30,6 @@ class MainActivity : AppCompatActivity() {
         val observerSurfaceViewLayout: ViewTreeObserver = bd.layoutGlSurfaceView.viewTreeObserver
         observerSurfaceViewLayout.addOnGlobalLayoutListener {
             Log.i(tagMsg, "---ViewTreeObserver---!")
-//            Log.i(tagMsg, "Parent Width: ${bd.layoutParent.width}")
-//            Log.i(tagMsg, "Parent Height: ${bd.layoutParent.height}")
             Log.i(tagMsg, "Surfaceview Width: ${bd.layoutGlSurfaceView.width}")
             Log.i(tagMsg, "Surfaceview Height: ${bd.layoutGlSurfaceView.height}")
             surfaceWidth = bd.layoutGlSurfaceView.width
