@@ -35,21 +35,23 @@ class MainActivity : AppCompatActivity() {
             surfaceWidth = bd.layoutGlSurfaceView.width
             surfaceHeight = bd.layoutGlSurfaceView.height
         }
-        //拍子のデフォルトとして２拍子を選択する。
-        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.fourbeat)
+        //ヌルポを避けるため、とりあえずビットマップを設定する。
+        val options = BitmapFactory.Options()
+        options.inScaled = false
+        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.fourbeat, options)
         //********* サーフェスビュークリック時の設定*****************************
         val lineSurfaceview = LineSurfaceView(this)
         val glSurfaceview = GlSurfaceView(this)
         bd.layoutGlSurfaceView.setOnClickListener {
             if (!isStarted) {
                 bd.layoutGlSurfaceView.removeView(lineSurfaceview)
-                opglArrayCreate()
+                setOpglArray()
                 bd.layoutGlSurfaceView.addView(glSurfaceview)
                 isStarted = true
             } else {
                 //ライン描画のサーフェスビューを表示する。
                 bd.layoutGlSurfaceView.removeView(glSurfaceview)
-                opglArrayCreate()
+                setOpglArray()
                 bd.layoutGlSurfaceView.addView(lineSurfaceview)
                 isStarted = false
             }
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val spinnerParent = parent as Spinner
                 tempo = spinnerParent.selectedItem as Int
-                opglArrayCreate()
+                setOpglArray()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -134,11 +136,13 @@ class MainActivity : AppCompatActivity() {
                 position: Int,
                 id: Long
             ) {
+                val options = BitmapFactory.Options()
+                options.inScaled = false
                 val spinnerParent = parent as Spinner
                 when (spinnerParent.selectedItem as String) {
                     "2 beat" -> {
                         rhythm = 2
-                        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.twobeat)
+                        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.twobeat, options)
 
                     }
                     "3 beat" -> {
@@ -146,10 +150,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     "4 beat" -> {
                         rhythm = 4
-                        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.fourbeat)
+                        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.fourbeat, options)
                     }
                 }
-                opglArrayCreate()
+                bitmapX = bmpBeat?.let { it.width } ?: 0
+                bitmapY = bmpBeat?.let { it.height } ?: 0
+                setOpglArray()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
@@ -174,7 +180,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val spinnerParent = parent as Spinner
                 motionYMultiplier = spinnerParent.selectedItem as Double
-                opglArrayCreate()
+                setOpglArray()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
@@ -199,7 +205,7 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val spinnerParent = parent as Spinner
                 radiusMultiplier = spinnerParent.selectedItem as Double
-                opglArrayCreate()
+                setOpglArray()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
@@ -224,20 +230,14 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val spinnerParent = parent as Spinner
                 gradationMultiplier = spinnerParent.selectedItem as Double
-                opglArrayCreate()
+                setOpglArray()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-        //ビットマップ画像新規作成時以外は常にコメント。
-        //ビットマップの生成にはActivityの継承が必要みたいなので、
-        //ビットマップに対する処理はメインアクティビティに配置する。
-//        val mH = MeasureBmpLineHeight()
-//        bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.fourbeat)
-//        mH.measureBmpLineHeight(bmpBeat,4)
     }
     //********************** onCreate終了 ***********************************************
-    fun opglArrayCreate () {
+    private fun setOpglArray () {
         //論理的頂点座標の作成。
         //実際にはBEAT,TEMPO変更時に呼び出すこととなる。
 
@@ -248,9 +248,8 @@ class MainActivity : AppCompatActivity() {
         opglOneBarDots = 1
         val lpArray = LogicalPosArray(rhythm,tempo,motionYMultiplier)
         //LogicalPositionはlogicalXとlogicalYの２つの戻り値を返すためPairでまとめられている。
-//        var radiusArray = FloatArray(ut.oneBarDots(tempo,rhythm))
-        opglLogicalX = lpArray.getLogicalPosArray(bmpBeat).first.toMutableList()
-        opglLogicalY = lpArray.getLogicalPosArray(bmpBeat).second.toMutableList()
+        opglLogicalX = lpArray.setLogicalPosArray(bmpBeat).first.toMutableList()
+        opglLogicalY = lpArray.setLogicalPosArray(bmpBeat).second.toMutableList()
         val animArray = AnimationArray(rhythm,tempo,radiusMultiplier,gradationMultiplier)
         opglAnimRadius = animArray.radiusArray().toMutableList()
         opglAnimGradation = animArray.gradationArray().toMutableList()
@@ -267,16 +266,20 @@ class MainActivity : AppCompatActivity() {
         //ディスプレイサイズ
         var surfaceWidth = 0
         var surfaceHeight = 0
-        //OpenGlへ渡すための変数
-        var opglOneBarDots = 0
+        //ビットマップサイズ
+        var bitmapX =0
+        var bitmapY =0
         //描画中かどうか（
         var isStarted = false
+        //*************** OpenGlへ渡すための変数 *********************************************
+        var opglOneBarDots = 0
         //配列（ミュータブルリストとすることでobject（他モジュールから参照可能）でありながら可変とすることができる。
         var opglLogicalX: MutableList<Int> = mutableListOf()
         var opglLogicalY: MutableList<Int> = mutableListOf()
         var opglAnimRadius: MutableList<Float> = mutableListOf()
         var opglAnimGradation: MutableList<Float> = mutableListOf()
 
+        //*************** 拡張関数 *****************************************************
         fun Int.mPow (multiplier :Double = 2.0) = this.toDouble().pow(multiplier)
     }
 }

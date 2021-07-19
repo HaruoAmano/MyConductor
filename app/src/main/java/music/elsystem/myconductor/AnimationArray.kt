@@ -26,7 +26,7 @@ class AnimationArray(rhythm: Int, tempo: Int, val radiusMultiplier: Double = 0.4
         for (i in 0 until oneBarDots) {
             //iのmultiplier乗を算出し最大値が30となるように調整
             gradationArray[i] = (0.7f * ((oneBarDots.mPow(gradationMultiplier) - i.mPow(gradationMultiplier)) / oneBarDots.mPow(gradationMultiplier))).toFloat() + 0.3f
-            Log.i(tagMsg,"gradationArray: ${gradationArray[i]}")
+//            Log.i(tagMsg,"gradationArray: ${gradationArray[i]}")
         }
         return gradationArray
     }

@@ -8,6 +8,8 @@ import music.elsystem.myconductor.MainActivity.Companion.opglAnimRadius
 import music.elsystem.myconductor.MainActivity.Companion.opglLogicalX
 import music.elsystem.myconductor.MainActivity.Companion.opglLogicalY
 import music.elsystem.myconductor.MainActivity.Companion.opglOneBarDots
+import music.elsystem.myconductor.MainActivity.Companion.bitmapX
+import music.elsystem.myconductor.MainActivity.Companion.bitmapY
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.cos
@@ -91,8 +93,7 @@ class GlRenderer : GLSurfaceView.Renderer {
             drawCircle(
                 opglLogicalX[i],
                 opglLogicalY[i],
-//                16, opglLogicalY[i] / 100f,
-                16, opglAnimRadius[l] *opglLogicalY[i] / 2000f,
+                16, opglAnimRadius[l] *opglLogicalY[i] / 2000f,  //2000fは適当
                 opglAnimGradation[l], opglAnimGradation[l], 1f, 1f
             )
         }
@@ -168,21 +169,20 @@ class GlRenderer : GLSurfaceView.Renderer {
         var indexX = 1
         for (i in 0 until 36 step 4) {
             meshVertex[i] = util.coX(0)
-            meshVertex[i + 1] = util.coY(300 * indexX)
-            meshVertex[i + 2] = util.coX(2999)
-            meshVertex[i + 3] = util.coY(300 * indexX)
+            meshVertex[i + 1] = util.coY(bitmapY / 5 * indexX)
+            meshVertex[i + 2] = util.coX(bitmapX)
+            meshVertex[i + 3] = util.coY(bitmapY / 5 * indexX)
             indexX++
         }
         //垂直線メッシュ
         var indexY = 1
         for (i in 36 until 72 step 4) {
-            meshVertex[i] = util.coX(300 * indexY)
+            meshVertex[i] = util.coX(bitmapX * indexY)
             meshVertex[i + 1] = util.coY(0)
-            meshVertex[i + 2] = util.coX(300 * indexY)
-            meshVertex[i + 3] = util.coY(2999)
+            meshVertex[i + 2] = util.coX(bitmapX / 5 * indexY)
+            meshVertex[i + 3] = util.coY(bitmapY)
             indexY++
         }
-//        Log.i("util.coY(1000)","${util.coY(1000)}")
         GLES20.glVertexAttribPointer(
             attPositionLocation,
             2,

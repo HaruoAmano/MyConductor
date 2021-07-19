@@ -1,0 +1,58 @@
+@startuml
+'https://plantuml.com/class-diagram
+class MainActivity{
+    bmpBeat: Bitmap?
+    rhythm : Int
+    tempo : Int
+    motionYMultiplier : Int
+    radiusMultiplier = Double
+    gradationMultiplier = Double
+
+    onCreate(savedInstanceState: Bundle?)
+    -setOpglArray ()
+}
+class GlSurfaceView{
+}
+class GlRenderer{
+    onSurfaceCreated()
+    onSurfaceChanged()
+    onDrawFrame()
+    -drawCircle(x:Int, y:Int, divides:Int, radius:Float, \n     red:Float, green: Float, blue: Float, alpha: Float)
+    -getRadian(divides: Int, idx: Int): Float
+    -drawMesh()
+
+}
+class LineSurfaceView{
+}
+class LineRenderer{
+    onSurfaceCreated()
+    onSurfaceChanged()
+    onDrawFrame()
+}
+class LogicalPosArray{
+    setLogicalPosArray(bmpBeat: Bitmap?)\n        : Pair<IntArray, IntArray>
+}
+class AnimationArray{
+    radiusArray(): FloatArray
+    gradationArray(): FloatArray
+}
+class Util{
+    +coX(x: Int): Float
+    +coY(y: Int): Float
+    +halfBeatDots(tempo:Int) :Int
+    +oneBarDots(tempo:Int, rhythm:Int) :Int
+    +convert(data: FloatArray): FloatBuffer
+}
+
+MainActivity -- GlSurfaceView
+GlSurfaceView -- GlRenderer
+MainActivity -- LineSurfaceView
+LineSurfaceView -- LineRenderer
+MainActivity -- LogicalPosArray
+MainActivity -- AnimationArray
+
+
+
+
+@enduml
+
