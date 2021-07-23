@@ -1,12 +1,13 @@
-package music.elsystem.myconductor
+package music.elsystem.myconductor.gldraw
 
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
-import music.elsystem.myconductor.MainActivity.Companion.opglLogicalX
-import music.elsystem.myconductor.MainActivity.Companion.opglLogicalY
-import music.elsystem.myconductor.MainActivity.Companion.opglOneBarDots
+import music.elsystem.myconductor.GraphicValue.logicalX
+import music.elsystem.myconductor.GraphicValue.logicalY
+import music.elsystem.myconductor.GraphicValue.oneBarFrame
+import music.elsystem.myconductor.Util
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -70,17 +71,14 @@ class LineRenderer : GLSurfaceView.Renderer {
         GLES20.glUniformMatrix4fv(uniLoc1, 1, false, mViewAndProjectionMatrix, 0)
         GLES20.glUniformMatrix4fv(uniLoc2, 1, false, worldMatrix, 0)
         //OpenGLでの頂点座標作成を指示*******************************************************************
-        val attPositionLocation = GLES20.glGetAttribLocation(mProgramId, "position")
-        //頂点アトリビュートについてはそれを有効化する必要がある。
-        GLES20.glEnableVertexAttribArray(attPositionLocation)
-        //アプリケーション内のメモリから GPU へデータを転送するための処理。
-        //論理的頂点座標の作成。
-        val vertices = FloatArray(opglOneBarDots * 2)
+        val vertices = FloatArray(oneBarFrame * 2)
         var vertexId = 0
-        for (i in 0 until opglOneBarDots) {
-            vertices[vertexId++] = ut.coX(opglLogicalX[i])
-            vertices[vertexId++] = ut.coY(opglLogicalY[i])
+        for (i in 0 until oneBarFrame) {
+            vertices[vertexId++] = ut.coX(logicalX[i])
+            vertices[vertexId++] = ut.coY(logicalY[i])
         }
+        val attPositionLocation = GLES20.glGetAttribLocation(mProgramId, "position")
+        GLES20.glEnableVertexAttribArray(attPositionLocation)
         GLES20.glVertexAttribPointer(
             attPositionLocation,
             2,
@@ -90,8 +88,8 @@ class LineRenderer : GLSurfaceView.Renderer {
             ut.convert(vertices)
         )
         //描画
-        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, opglOneBarDots)
-//        GLES20.glDisableVertexAttribArray(attPositionLocation)
+        GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, oneBarFrame)
+        GLES20.glDisableVertexAttribArray(attPositionLocation)
     }
 
     companion object {

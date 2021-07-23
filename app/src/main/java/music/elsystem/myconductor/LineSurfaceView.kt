@@ -3,6 +3,7 @@ package music.elsystem.myconductor
 
 import android.content.Context
 import android.opengl.GLSurfaceView
+import music.elsystem.myconductor.gldraw.LineRenderer
 
 
 //GLSurfaceViewを継承

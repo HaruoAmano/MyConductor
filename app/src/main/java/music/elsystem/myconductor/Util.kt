@@ -1,9 +1,9 @@
 package music.elsystem.myconductor
 
-import music.elsystem.myconductor.MainActivity.Companion.surfaceHeight
-import music.elsystem.myconductor.MainActivity.Companion.surfaceWidth
-import music.elsystem.myconductor.MainActivity.Companion.bitmapX
-import music.elsystem.myconductor.MainActivity.Companion.bitmapY
+import music.elsystem.myconductor.Common.bitmapX
+import music.elsystem.myconductor.Common.bitmapY
+import music.elsystem.myconductor.Common.surfaceHeight
+import music.elsystem.myconductor.Common.surfaceWidth
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -22,6 +22,10 @@ class Util() {
         return ((bitmapY -1 - y) - (bitmapY / 2f)) * (surfaceHeight/bitmapY.toFloat())
     }
     fun halfBeatDots(tempo: Int): Int {
+        //リフレッシュレート60Hzを前提に一旦設計
+        //tempo = 60とは１分間に60拍刻むということ。
+        //リフレッシュレート60Hzであれば1分間に3600回画面が書き換わる（onDrawFrameが実行される）ということ。
+        //したがって半拍分の画面書き換え回数は1800/tempoとなる。
         return (1800f / tempo.toFloat()).toInt()
     }
     fun oneBarDots(tempo: Int, rhythm: Int): Int {

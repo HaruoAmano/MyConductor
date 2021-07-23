@@ -4,6 +4,7 @@
     <string name="tinyLower">&lt;</string>
     <string name="tinyHigher">&gt;</string>
     <string name="higher">&gt;&gt;</string>
-    <string name="tapToStart">Please Tap to Start..."   "</string>
+    <string name="tapToStart">Please Tap to Start..."   "\n
+    描画中の値変更は禁止</string>
     <string name="tapToStop">Please Tap to Stop..."   "</string>
 </resources>
