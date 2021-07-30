@@ -11,7 +11,7 @@ class AnimationArray
     (rhythm: Int, tempo: Int, private val radiusMultiplier: Double = 0.4,
      private val gradationMultiplier: Double = 0.4) {
     private val ut = Util()
-    private val oneBarDots = ut.oneBarDots(tempo, rhythm)
+    private val oneBarDots = ut.oneBarFrame(tempo, rhythm)
     //ドットサイズの変更を定義する関数
     fun radiusArray() :Boolean{
         animRadius = mutableListOf()

@@ -4,10 +4,12 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
+import music.elsystem.myconductor.Common.prefGraphTimestamp
 import music.elsystem.myconductor.GraphicValue.logicalX
 import music.elsystem.myconductor.GraphicValue.logicalY
 import music.elsystem.myconductor.GraphicValue.oneBarFrame
 import music.elsystem.myconductor.Util
+import java.sql.Timestamp
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -15,6 +17,7 @@ class LineRenderer : GLSurfaceView.Renderer {
     private var mProgramId = 0
     private val mViewAndProjectionMatrix = FloatArray(16)
     private val ut = Util()
+    private var frameCount = 0
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
         //画面クリア時の色の設定。（０～1を指定する。）
         GLES20.glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
@@ -90,6 +93,16 @@ class LineRenderer : GLSurfaceView.Renderer {
         //描画
         GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, oneBarFrame)
         GLES20.glDisableVertexAttribArray(attPositionLocation)
+        //**********************************************************************
+        //初期起動時にサウンドとグラフィックを同期させるための処理
+        when (frameCount){
+            in 0..238 -> frameCount++
+            239 -> {
+                prefGraphTimestamp = Timestamp(System.currentTimeMillis())
+                Log.i("prefTimestamp:Line","$prefGraphTimestamp")
+                frameCount++
+            }
+        }
     }
 
     companion object {

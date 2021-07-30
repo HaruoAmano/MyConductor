@@ -1,5 +1,8 @@
 package music.elsystem.myconductor
 
+import android.widget.Spinner
+import android.widget.TextView
+import music.elsystem.myconductor.Common.tempo
 import music.elsystem.myconductor.Common.bitmapX
 import music.elsystem.myconductor.Common.bitmapY
 import music.elsystem.myconductor.Common.surfaceHeight
@@ -21,17 +24,43 @@ class Util() {
     fun coY(y: Int): Float {
         return ((bitmapY -1 - y) - (bitmapY / 2f)) * (surfaceHeight/bitmapY.toFloat())
     }
-    fun halfBeatDots(tempo: Int): Int {
+    fun halfBeatFrame(tempo: Int): Int {
         //リフレッシュレート60Hzを前提に一旦設計
         //tempo = 60とは１分間に60拍刻むということ。
         //リフレッシュレート60Hzであれば1分間に3600回画面が書き換わる（onDrawFrameが実行される）ということ。
         //したがって半拍分の画面書き換え回数は1800/tempoとなる。
         return (1800f / tempo.toFloat()).toInt()
     }
-    fun oneBarDots(tempo: Int, rhythm: Int): Int {
-        return halfBeatDots(tempo) * 2 * rhythm
+    fun oneBarFrame(tempo: Int, rhythm: Int): Int {
+        return halfBeatFrame(tempo) * 2 * rhythm
     }
-
+    fun changeTempo(newTempo: Int, textView:TextView,spinner:Spinner) {
+        when {
+            newTempo < 25 -> {
+                textView.text = "25"
+                tempo = 25
+            }
+            newTempo >= 144 -> {
+                textView.text = "144"
+                tempo = 144
+            }
+            else -> {
+                textView.text = newTempo.toString()
+                tempo = newTempo
+            }
+        }
+        when (tempo) {
+            in 25..42 -> spinner.setSelection(0) //"Grave"
+            in 43..49 -> spinner.setSelection(1) //"Largo"
+            in 50..53 -> spinner.setSelection(2) //"Lento"
+            in 54..59 -> spinner.setSelection(3) //"Adagio"
+            in 60..67 -> spinner.setSelection(4) //"Adagietto"
+            in 68..83 -> spinner.setSelection(5) //"Andante"
+            in 84..95 -> spinner.setSelection(6) //"Moderate"
+            in 96..119 -> spinner.setSelection(7) //"Allegretto"
+            in 120..144 -> spinner.setSelection(8) //"Allegro"
+        }
+    }
     //コーディングしたプリミティブ型を GPU に転送するためにバッファ型に
     // 変換するためのユーティリティクラスで、
     //頂点座標や頂点インデックスを GPU に転送する際に利用する。

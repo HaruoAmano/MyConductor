@@ -16,8 +16,8 @@ import music.elsystem.myconductor.MainActivity.Companion.mPow
 //テンポ・拍子・モーションYをインプットとして論理的頂点座標を作成する。
 class LogicalPosArray(private val rhythm: Int, private val tempo: Int, private val multiplier: Double) {
     private val ut = Util()
-    private val halfBeatDots = ut.halfBeatDots(tempo)
-    private val oneBarDots = ut.oneBarDots(tempo,rhythm)
+    private val halfBeatDots = ut.halfBeatFrame(tempo)
+    private val oneBarDots = ut.oneBarFrame(tempo,rhythm)
 
     //テンポ、（および打点の重み）に応じ論理的にマッピングされたY値の
     //配列を生成する。

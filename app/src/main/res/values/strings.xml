@@ -7,4 +7,7 @@
     <string name="tapToStart">Please Tap to Start..."   "\n
     描画中の値変更は禁止</string>
     <string name="tapToStop">Please Tap to Stop..."   "</string>
+    <string name="progress_bar_disc">Please wait few second…\n
+            Measure the speed of your smartphone \n
+            for the first time only.</string>
 </resources>
