@@ -5,12 +5,14 @@ import android.widget.TextView
 import music.elsystem.myconductor.Common.tempo
 import music.elsystem.myconductor.Common.bitmapX
 import music.elsystem.myconductor.Common.bitmapY
+import music.elsystem.myconductor.Common.offBeatNum
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
+import kotlin.math.pow
 
 class Util() {
     //左上に原点を置いてそこからビットマップのドットをの座標単位として図形を描き、
@@ -29,16 +31,21 @@ class Util() {
         //tempo = 60とは１分間に60拍刻むということ。
         //リフレッシュレート60Hzであれば1分間に3600回画面が書き換わる（onDrawFrameが実行される）ということ。
         //したがって半拍分の画面書き換え回数は1800/tempoとなる。
-        return (1800f / tempo.toFloat()).toInt()
+        var temporaryHalfBeat = 1800f / tempo.toFloat()
+        //裏拍が３連符の場合、強制的に３の倍数に変換する。
+        if (offBeatNum == 3){
+            temporaryHalfBeat = ((temporaryHalfBeat / 3f).toInt() * 3).toFloat()
+        }
+        return temporaryHalfBeat.toInt()
     }
     fun oneBarFrame(tempo: Int, rhythm: Int): Int {
         return halfBeatFrame(tempo) * 2 * rhythm
     }
     fun changeTempo(newTempo: Int, textView:TextView,spinner:Spinner) {
         when {
-            newTempo < 25 -> {
-                textView.text = "25"
-                tempo = 25
+            newTempo < 20 -> {
+                textView.text = "20"
+                tempo = 20
             }
             newTempo >= 144 -> {
                 textView.text = "144"
@@ -83,5 +90,8 @@ class Util() {
         shortBuffer.position(0)
         return shortBuffer
     }
-
+    companion object {
+        //*************** 拡張関数 *****************************************************
+        fun Int.mPow(multiplier: Double) = this.toDouble().pow(multiplier)
+    }
 }

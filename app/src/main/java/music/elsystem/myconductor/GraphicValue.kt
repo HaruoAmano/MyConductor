@@ -10,10 +10,6 @@ object GraphicValue {
     //配列（ミュータブルリストとすることでobject（他モジュールから参照可能）でありながら可変とすることができる。
     var logicalX: MutableList<Int> = mutableListOf()
     var logicalY: MutableList<Int> = mutableListOf()
-    var animRadius: MutableList<Float> = mutableListOf()
-    //各ライン内でのYの相対位置（実際のBitMap合わせ縮尺する前の値）。描画時のradiusの基数として使用。
-    var relativeYPosInLine: MutableList<Float> = mutableListOf()
-    var animGradation: MutableList<Float> = mutableListOf()
     //描画に使用される数字のビットマップリスト
     var numberBitmapList: MutableList<Bitmap> = mutableListOf()
     var numberPosXList: MutableList<Int> = mutableListOf()

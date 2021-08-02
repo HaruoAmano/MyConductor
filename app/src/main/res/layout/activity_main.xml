@@ -1,48 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layoutParent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:ignore="ExtraText">
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.0" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.6" />
+        app:layout_constraintGuide_percent="0.7" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineH2_0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.75" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH2_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.72" />
+        app:layout_constraintGuide_percent="0.8" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH2_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.79" />
+        app:layout_constraintGuide_percent="0.85" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.86" />
+        app:layout_constraintGuide_percent="0.9" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineH4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.93" />
+        app:layout_constraintGuide_percent="0.95" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guidelineV1"
         android:layout_width="wrap_content"
@@ -61,277 +74,329 @@
         android:id="@+id/layoutGlSurfaceView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
         android:background="@color/screen_back"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@id/guidelineH2"
         app:layout_constraintEnd_toEndOf="@id/guidelineV2"
         app:layout_constraintStart_toStartOf="@id/guidelineV1"
-        app:layout_constraintTop_toTopOf="@id/guidelineH1">
-    </LinearLayout>
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@id/guidelineH2"
-        app:layout_constraintEnd_toEndOf="@id/guidelineV2"
-        app:layout_constraintStart_toStartOf="@id/guidelineV1"
-        app:layout_constraintTop_toTopOf="@id/guidelineH1">
-        <LinearLayout
-            android:id="@+id/l_measure_speed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            >
-        <ProgressBar
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:layout_margin="30dp"
-            style="@android:style/Widget.ProgressBar"
-            />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/progress_bar_disc"
-                android:textColor="@color/white"
-                />
-        </LinearLayout>
-    </FrameLayout>
+        app:layout_constraintTop_toTopOf="@id/guidelineH1"></LinearLayout>
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/tapToStart"
         android:gravity="end"
+        android:text="@string/tapToStart"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineV2"
         app:layout_constraintTop_toTopOf="@id/guidelineH2"
-        app:layout_constraintEnd_toStartOf="@+id/guidelineV2"/>
+        app:layout_constraintBottom_toBottomOf="@id/guidelineH2_0"
+        />
+    ////　そのまた上段　////////////////////////////////////////////////
+
+    <RadioGroup
+        android:id="@+id/rg_tact"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH2_1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_0"
+        app:layout_constraintEnd_toEndOf="parent">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TACT"
+            android:textColor="@color/black" />
+        <RadioButton
+            android:id="@+id/rb_heavy"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Heavy/Pesante" />
+        <RadioButton
+            android:id="@+id/rb_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Normal" />
+        <RadioButton
+            android:id="@+id/rb_swing"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Swing/OutBeat" />
+    </RadioGroup>
     ////　その上段　////////////////////////////////////////////////
+
     <RadioGroup
         android:id="@+id/rg_sound"
         android:layout_width="wrap_content"
         android:layout_height="30dp"
         android:layout_gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_1"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH2_2"
         app:layout_constraintStart_toStartOf="parent"
-        >
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_1">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="sound"
-            android:textColor="@color/black"/>
+            android:text="Sound"
+            android:textSize="10sp"
+            android:textColor="@color/black" />
+
         <RadioButton
             android:id="@+id/rb_voice"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:textSize="10sp"
             android:text="Voice" />
 
         <RadioButton
             android:id="@+id/rb_click"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginLeft="5dp"
+            android:textSize="10sp"
             android:text="Click" />
     </RadioGroup>
+
     <RadioGroup
         android:id="@+id/rg_off_beat_num"
         android:layout_width="wrap_content"
         android:layout_height="30dp"
         android:layout_gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_1"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH2_2"
-        app:layout_constraintStart_toEndOf="@+id/rg_sound"
         app:layout_constraintEnd_toEndOf="parent"
-        >
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OFF BEAT"
-        android:textColor="@color/black"/>
-    <RadioButton
-        android:id="@+id/rb_none"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:text="none" />
-    <RadioButton
-        android:id="@+id/rb_two"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:text="2" />
-    <RadioButton
-        android:id="@+id/rb_three"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="5dp"
-        android:text="3" />
+        app:layout_constraintStart_toEndOf="@+id/rg_sound"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_1">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OFF BEAT"
+            android:textSize="10sp"
+            android:textColor="@color/black" />
+
+        <RadioButton
+            android:id="@+id/rb_none"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="10sp"
+            android:text="none" />
+
+        <RadioButton
+            android:id="@+id/rb_two"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="10sp"
+            android:text="2" />
+
+        <RadioButton
+            android:id="@+id/rb_three"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="10sp"
+            android:text="3" />
+        <RadioButton
+            android:id="@+id/rb_four"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="10sp"
+            android:text="4" />
     </RadioGroup>
     ////　上段　////////////////////////////////////////////////
+
     <Spinner
         android:id="@+id/spn_tempo_label"
         android:layout_width="100dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        android:padding="0dp"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_mm"
 
-        android:padding="0dp"/>
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <Button
         android:id="@+id/btn_tempo_mm"
-        android:text="@string/lower"
         android:layout_width="30dp"
         android:layout_height="40dp"
         android:padding="0dp"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        android:text="@string/lower"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_m1"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/spn_tempo_label"
-/>
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <Button
         android:id="@+id/btn_tempo_m1"
-        android:text="@string/tinyLower"
         android:layout_width="30dp"
         android:layout_height="40dp"
         android:padding="0dp"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        android:text="@string/tinyLower"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
+        app:layout_constraintEnd_toStartOf="@+id/tv_tempo"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btn_tempo_mm"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <TextView
         android:id="@+id/tv_tempo"
         android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="@color/purple_200"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
-        app:layout_constraintStart_toEndOf="@+id/btn_tempo_m1"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_p1"
+        app:layout_constraintHorizontal_bias="0.5"
 
-        />
+        app:layout_constraintStart_toEndOf="@+id/btn_tempo_m1"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <Button
         android:id="@+id/btn_tempo_p1"
-        android:text="@string/tinyHigher"
         android:layout_width="30dp"
         android:layout_height="40dp"
         android:padding="0dp"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        android:text="@string/tinyHigher"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
-        app:layout_constraintStart_toEndOf="@+id/tv_tempo"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_pp"
+        app:layout_constraintHorizontal_bias="0.5"
 
-        />
+        app:layout_constraintStart_toEndOf="@+id/tv_tempo"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <Button
         android:id="@+id/btn_tempo_pp"
-        android:text="@string/higher"
         android:layout_width="30dp"
         android:layout_height="40dp"
         android:padding="0dp"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
+        android:text="@string/higher"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
-        app:layout_constraintStart_toEndOf="@+id/btn_tempo_p1"
+        app:layout_constraintEnd_toStartOf="@+id/btnTap"
+        app:layout_constraintHorizontal_bias="0.5"
 
-        />
+        app:layout_constraintStart_toEndOf="@+id/btn_tempo_p1"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
+
     <Button
         android:id="@+id/btnTap"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2"
-        app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
-        app:layout_constraintStart_toEndOf="@+id/btn_tempo_pp"
         android:background="@drawable/ic_baseline_touch_app_24"
+        app:layout_constraintBottom_toBottomOf="@+id/guidelineH3"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_tempo_pp"
+        app:layout_constraintTop_toTopOf="@+id/guidelineH2_2" />
     ////　中段　////////////////////////////////////////////////
 
     <Spinner
         android:id="@+id/spnBeat"
         android:layout_width="60dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
+        app:layout_constraintEnd_toStartOf="@+id/tv_motion_y_disc"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3" />
+
     <TextView
         android:id="@+id/tv_motion_y_disc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="跳ねる\n勢い"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintEnd_toStartOf="@+id/spnMotionY"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/spnBeat"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3" />
 
     <Spinner
         android:id="@+id/spnMotionY"
         android:layout_width="60dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintEnd_toStartOf="@+id/spn_dot_size_disc"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/tv_motion_y_disc"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3" />
+
     <TextView
         android:id="@+id/spn_dot_size_disc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="球の\n大きさ"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintEnd_toStartOf="@+id/spn_dot_size"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/spnMotionY"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3" />
 
     <Spinner
         android:id="@+id/spn_dot_size"
         android:layout_width="60dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH3"
         app:layout_constraintBottom_toBottomOf="@+id/guidelineH4"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/spn_dot_size_disc"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="@+id/guidelineH3" />
     ////　下段　////////////////////////////////////////////////
+
     <TextView
         android:id="@+id/tv_radius_disc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="球のしっぽ\n大きいほど\nしぼむのが早い"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/spnRadius"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
+
     <Spinner
         android:id="@+id/spnRadius"
         android:layout_width="60dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
+        app:layout_constraintEnd_toStartOf="@+id/tv_gradation_disc"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/tv_radius_disc"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
+
     <TextView
         android:id="@+id/tv_gradation_disc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="残像の\n長さ"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/spn_alpha"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/spnRadius"
-    />
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
 
     <Spinner
-        android:id="@+id/spnGradation"
+        android:id="@+id/spn_alpha"
         android:layout_width="60dp"
-        android:layout_height="40dp"
+        android:layout_height="30dp"
         android:background="#fff"
         android:backgroundTint="#2F313C"
-        app:layout_constraintTop_toTopOf="@+id/guidelineH4"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/tv_gradation_disc"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="@+id/guidelineH4" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

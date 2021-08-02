@@ -4,12 +4,12 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
-import music.elsystem.myconductor.Common.prefGraphTimestamp
 import music.elsystem.myconductor.GraphicValue.logicalX
 import music.elsystem.myconductor.GraphicValue.logicalY
 import music.elsystem.myconductor.GraphicValue.oneBarFrame
 import music.elsystem.myconductor.Util
-import java.sql.Timestamp
+import music.elsystem.myconductor.gldraw.Shader.lineFragmentSource
+import music.elsystem.myconductor.gldraw.Shader.lineVertexSource
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -24,12 +24,12 @@ class LineRenderer : GLSurfaceView.Renderer {
         //バーテックスシェーダーのコンパイル
         val vertexShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
         //sVertexShaderSourceは下のほうでコンパニオンオブジェクトとして定義されている。
-        GLES20.glShaderSource(vertexShader, sVertexShaderSource)
+        GLES20.glShaderSource(vertexShader, lineVertexSource)
         GLES20.glCompileShader(vertexShader)
         //フラグメントシェーダーのコンパイル
         val fragmentShader = GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
         //sFragmentShaderSourceは下のほうでコンパニオンオブジェクトとして定義されている。
-        GLES20.glShaderSource(fragmentShader, sFragmentShaderSource)
+        GLES20.glShaderSource(fragmentShader, lineFragmentSource)
         GLES20.glCompileShader(fragmentShader)
         //シェーダのリンク
         //シェーダがコンパイル出来たら次にそれをプログラムにリンクさせる。
@@ -93,43 +93,5 @@ class LineRenderer : GLSurfaceView.Renderer {
         //描画
         GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, oneBarFrame)
         GLES20.glDisableVertexAttribArray(attPositionLocation)
-        //**********************************************************************
-        //初期起動時にサウンドとグラフィックを同期させるための処理
-        when (frameCount){
-            in 0..238 -> frameCount++
-            239 -> {
-                prefGraphTimestamp = Timestamp(System.currentTimeMillis())
-                Log.i("prefTimestamp:Line","$prefGraphTimestamp")
-                frameCount++
-            }
-        }
-    }
-
-    companion object {
-        //バーテックスシェーダ
-        //シェーダが実行される時はこの中のmain関数が呼び出される。
-        //変数は 種別 型 変数名 という風に定義される。
-        //  vpMatrix ビュー座標変換行列と射影変換行列を掛けあわせた 4x4 の行列
-        //  wMatrix 4x4 のワールド座標変換行列
-        //  position x, y, z 成分を持つ頂点座標
-        const val sVertexShaderSource =
-            "uniform mat4 vpMatrix;" +
-                    "uniform mat4 wMatrix;" +
-                    "attribute vec3 position;" +
-                    "void main() {" +
-                    "  gl_Position = vpMatrix * wMatrix * vec4(position, 1.0);" +
-                    "}"
-
-        //フラグメントシェーダ
-        //今回のフラグメントシェーダでは変数は特に使わないので定義されていない。
-        //このフラグメントシェーダでは一律赤色 vec4(1.0, 0.0, 0.0, 1.0) を出力するようにしている。
-        //色は rgba の成分を 0 〜 1 の範囲で指定する。
-        //gl_FragColor というのはバーテックスシェーダで出てきたのと同じで組み込みの変数になっていて、
-        //この変数に色を代入するとその色をフラグメントの色として、次の処理に渡されていく。
-        //※precision mediump float; の部分はおまじない的に考えてよい。
-        const val sFragmentShaderSource = "precision mediump float;" +
-                "void main() {" +
-                "  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);" +
-                "}"
     }
 }

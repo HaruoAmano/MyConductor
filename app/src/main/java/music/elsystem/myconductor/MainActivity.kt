@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,35 +17,33 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.*
+import music.elsystem.myconductor.Common.SoundName.*
 import music.elsystem.myconductor.Common.bitmapX
 import music.elsystem.myconductor.Common.bitmapY
-import music.elsystem.myconductor.Common.gradationMultiplier
+import music.elsystem.myconductor.Common.alphaMultiplier
 import music.elsystem.myconductor.Common.justTappedSw
+import music.elsystem.myconductor.Common.justTappedSoundSw
 import music.elsystem.myconductor.Common.lstResIdOnbeatAll
 import music.elsystem.myconductor.Common.lstSpOnbeat
-import music.elsystem.myconductor.Common.machineTimelag
 import music.elsystem.myconductor.Common.motionYMultiplier
 import music.elsystem.myconductor.Common.offBeatNum
 import music.elsystem.myconductor.Common.radiusMultiplier
 import music.elsystem.myconductor.Common.rhythm
+import music.elsystem.myconductor.Common.soundPool
 import music.elsystem.myconductor.Common.spOffbeatVoice
-import music.elsystem.myconductor.Common.spOffbeatVoice2
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
+import music.elsystem.myconductor.Common.Tact.*
+import music.elsystem.myconductor.Common.tactType
 import music.elsystem.myconductor.Common.tempo
 import music.elsystem.myconductor.GraphicValue.dotSize
 import music.elsystem.myconductor.GraphicValue.halfBeatFrame
 import music.elsystem.myconductor.GraphicValue.numberBitmapList
-import music.elsystem.myconductor.GraphicValue.numberPosXList
 import music.elsystem.myconductor.GraphicValue.oneBarFrame
 import music.elsystem.myconductor.GraphicValue.oneBeatFrame
 import music.elsystem.myconductor.databinding.ActivityMainBinding
-import music.elsystem.myconductor.sound.Sound
-import kotlin.coroutines.CoroutineContext
-import kotlin.math.pow
 
-class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+class MainActivity : AppCompatActivity() {
     private val bd by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val ut = Util()
     var bmpBeat: Bitmap? = null
@@ -57,13 +57,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val handler: Handler = Handler(Looper.getMainLooper())
 
     //メトロノーム本体オブジェクト
-    private val sound = Sound()
-    var voice = "Voice"
-
-    // Dispatcher.Main を指定しているためこのスコープで起動するコルーチンはメインスレッドで動作する。
-    // Job として上で定義した job を渡しているので、すべてのコルーチンはこの job の子になる
-    private val job by lazy { Job() }
-    override var coroutineContext: CoroutineContext = Dispatchers.Main + job
+    var voice = Voice.name
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +66,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val myConductorPrefData: SharedPreferences =
             getSharedPreferences("MyConductorPrefData", Context.MODE_PRIVATE)
         val editor = myConductorPrefData.edit()
-        bd.lMeasureSpeed.visibility = View.INVISIBLE
         //サーフェスビューの親ビューであるLinearLayoutを生成する。
         val observerSurfaceViewLayout: ViewTreeObserver = bd.layoutGlSurfaceView.viewTreeObserver
         observerSurfaceViewLayout.addOnGlobalLayoutListener {
@@ -86,77 +79,51 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val options = BitmapFactory.Options()
         options.inScaled = false
         bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.beat_4, options)
+        bitmapX = bmpBeat?.let { it.width } ?: 0
+        bitmapY = bmpBeat?.let { it.height } ?: 0
         loadBitmapNumber()
         //サウンドファイルを読み込みサウンドプールにセットする。
-        loadSound(voice)
-        sound.setSoundPool(this)
-        //********* サーフェスビュークリック時の設定*****************************
-        val lineSurfaceview = LineSurfaceView(this)
-        val glSurfaceview = GlSurfaceView(this)
-        //初期状態はライン描画のサーフェスビューを表示する。
-        setOpglLineArray()
-        bd.layoutGlSurfaceView.addView(lineSurfaceview)
-        bd.layoutGlSurfaceView.setOnClickListener {
-            //アニメーション描画を開始する。
-            if (!isStarted) {
-                bd.layoutGlSurfaceView.removeView(lineSurfaceview)
-                setOpglArray()
-                bd.layoutGlSurfaceView.addView(glSurfaceview)
-                //メトロノームを開始する。
-                //再生中はスリープ状態にならないように設定する。
-                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-//                job.start()
-                launch(context = Dispatchers.Default) {
-                    sound.start()
+        setSoundList(voice)
+        setSoundPool()
+        //タクト　ラジオボタン
+        bd.rgTact.check(bd.rbNormal.id)
+        bd.rgTact.setOnCheckedChangeListener { _, checkedId ->
+            // checkedIdから、選択されたRadioButtonを取得
+            when (checkedId) {
+                bd.rbHeavy.id -> {
+                    tactType = Heavy.name
                 }
-                justTappedSw = true
-                isStarted = true
-            } else {
-                Log.i("ストップタップ", "${numberPosXList}")
-                //ライン描画のサーフェスビューを表示する。
-                bd.layoutGlSurfaceView.removeView(glSurfaceview)
-                setOpglLineArray()
-                bd.layoutGlSurfaceView.addView(lineSurfaceview)
-                //メトロノームを停止する。
-                job.cancelChildren()
-                isStarted = false
-            }
-        }
-        //初回起動時はグラフィックとサウンドの同期のため測定を行う。
-        if (!myConductorPrefData.getBoolean("TimelagSetSw",false)) {
-            Log.i("prefTimestamp:Main", "初期測定開始")
-            launch(context = Dispatchers.Default) {
-                bd.lMeasureSpeed.visibility = View.VISIBLE
-                sound.adjustStart()
-                bd.lMeasureSpeed.visibility = View.INVISIBLE
-                editor.putBoolean("TimelagSetSw",true)
-                editor.putFloat("MachineTimelag",machineTimelag)
-                editor.apply()
+                bd.rbNormal.id -> {
+                    tactType = Normal.name
+                }
+                bd.rbSwing.id -> {
+                    tactType = Swing.name
+                }
             }
         }
         //音色　ラジオボタン
         bd.rgSound.check(bd.rbVoice.id)
-        bd.rgSound.setOnCheckedChangeListener{ _, checkedId ->
+        bd.rgSound.setOnCheckedChangeListener { _, checkedId ->
             // checkedIdから、選択されたRadioButtonを取得
             when (checkedId) {
                 bd.rbVoice.id -> {
-                    voice = "Voice"
+                    voice = Voice.name
                 }
                 bd.rbClick.id -> {
-                    voice = "Click"
+                    voice = Click.name
                 }
             }
-            loadSound(voice)
-            Log.i("私は", "rgSound")
-            sound.setSoundPool(this)
+            setSoundList(voice)
+            setSoundPool()
         }
         //裏拍の刻み　NONE or２ or ３
         bd.rgOffBeatNum.check(bd.rbNone.id)
-        bd.rgOffBeatNum.setOnCheckedChangeListener{ _, checkedId ->
+        bd.rgOffBeatNum.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 bd.rbNone.id -> offBeatNum = 1
                 bd.rbTwo.id -> offBeatNum = 2
                 bd.rbThree.id -> offBeatNum = 3
+                bd.rbFour.id -> offBeatNum = 4
             }
         }
 
@@ -171,7 +138,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         // spnTempoLabel に adapter をセット
         bd.spnTempoLabel.adapter = adapter1
-        bd.spnTempoLabel.setSelection(3)   //初期値をAndanteとする。
+        bd.spnTempoLabel.setSelection(4)   //初期値をAndanteとする。
         // リスナーを登録
         bd.spnTempoLabel.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -191,30 +158,30 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
         //********* btn < *********************************************************
-        bd.btnTempoMm.setOnClickListener{
+        bd.btnTempoMm.setOnClickListener {
             ut.changeTempo(
-                tempo - tempo / 25,
+                tempo - Math.ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
                 bd.spnTempoLabel
             )
         }
-        bd.btnTempoM1.setOnClickListener{
+        bd.btnTempoM1.setOnClickListener {
             ut.changeTempo(
                 tempo - 1,
                 bd.tvTempo,
                 bd.spnTempoLabel
             )
         }
-        bd.btnTempoP1.setOnClickListener{
+        bd.btnTempoP1.setOnClickListener {
             ut.changeTempo(
                 tempo + 1,
                 bd.tvTempo,
                 bd.spnTempoLabel
             )
         }
-        bd.btnTempoPp.setOnClickListener{
+        bd.btnTempoPp.setOnClickListener {
             ut.changeTempo(
-                tempo + tempo / 25,
+                tempo + Math.ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
                 bd.spnTempoLabel
             )
@@ -229,9 +196,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         )
         // spinner に adapter をセット
         bd.spnBeat.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, rhythmList).also{
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, rhythmList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
         bd.spnBeat.setSelection(2)
         // リスナーを登録
         bd.spnBeat.onItemSelectedListener =
@@ -268,9 +235,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     //描画に使用される数字のビットマップリストを生成する。
                     setNumberList()
                     setOpglLineArray()
-//                    loadSound(voice)
-                    Log.i("私は", "spnBeat")
-//                    sound.setSoundPool(context = this@MainActivity)
+                    setSoundList(voice)
+                    setSoundPool()
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -279,13 +245,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         //********* spnMotionYスピナーの設定（タクトの跳ね具合) *********************
         val motionYList = listOf(
-            0.5, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0
+            0.5, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0 , 5.0
         )
         // spinner に adapter をセット
         bd.spnMotionY.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, motionYList).also{
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, motionYList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
         bd.spnMotionY.setSelection(4)
         // リスナーを登録
         bd.spnMotionY.onItemSelectedListener =
@@ -305,13 +271,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
 
         //********* spnDotSizeスピナーの設定（球の大きさ) *********************
-        val dotSizeList = listOf(0.6f, 0.8f, 1.0f, 1.2f, 1.5f, 1.8f)
+        val dotSizeList = listOf(10f, 15f , 20f, 30f)
         // spinner に adapter をセット
         bd.spnDotSize.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, dotSizeList).also{
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        bd.spnDotSize.setSelection(2)
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, dotSizeList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        bd.spnDotSize.setSelection(1)
         // リスナーを登録
         bd.spnDotSize.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -331,14 +297,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         //********* spnRadiusスピナーの設定（ドットが大きくなる速さ) *********************
         val radiusList = listOf(
-            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7
+            3.0,4.0,5.0
         )
         // spinner に adapter をセット
         bd.spnRadius.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, radiusList).also{
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        bd.spnRadius.setSelection(4)
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, radiusList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        bd.spnRadius.setSelection(1)
         // リスナーを登録
         bd.spnRadius.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -356,18 +322,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
 
-        //********* spnGradationスピナーの設定（グラデーション（αの減衰具合）*************
-        val gradationList = listOf(
-            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 1.0, 1.5, 2.0
+        //********* spnAlphaスピナーの設定（αの減衰具合）*************
+        val alphaList = listOf(
+            1.0, 1.5, 2.0 ,3.0, 4.0 ,5.0
         )
         // spinner に adapter をセット
-        bd.spnGradation.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, gradationList).also{
-            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        bd.spnGradation.setSelection(4)
+        bd.spnAlpha.adapter =
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, alphaList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        bd.spnAlpha.setSelection(4)
         // リスナーを登録
-        bd.spnGradation.onItemSelectedListener =
+        bd.spnAlpha.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -376,26 +342,50 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     id: Long
                 ) {
                     val spinnerParent = parent as Spinner
-                    gradationMultiplier = spinnerParent.selectedItem as Double
+                    alphaMultiplier = spinnerParent.selectedItem as Double
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
                 }
             }
-
+        //********* サーフェスビュークリック時の設定*****************************
+        val lineSurfaceview = LineSurfaceView(this)
+        val glSurfaceview = GlSurfaceView(this)
+        setOpglLineArray()
+        //初期状態はライン描画のサーフェスビューを表示する。
+        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+        bd.layoutGlSurfaceView.setOnClickListener {
+            //アニメーション描画を開始する。
+            if (!isStarted) {
+                //サウンドの再生はGlRendererから実行される。
+                bd.layoutGlSurfaceView.removeView(lineSurfaceview)
+                setOpglArray()
+                bd.layoutGlSurfaceView.addView(glSurfaceview)
+                //再生中はスリープ状態にならないように設定する。
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                justTappedSw = true
+                justTappedSoundSw = true
+                isStarted = true
+            } else {
+                //ライン描画のサーフェスビューを表示する。
+                bd.layoutGlSurfaceView.removeView(glSurfaceview)
+                setOpglLineArray()
+                bd.layoutGlSurfaceView.addView(lineSurfaceview)
+                //メトロノームを停止する。
+                isStarted = false
+            }
+        }
     }
 
     //********************** onCreate終了 ***********************************************
     override fun onResume() {
         super.onResume()
-//        Log.i("私は","onResume")
 //        sound.setSoundPool(this)
     }
 
     override fun onPause() {
         super.onPause()
-        job.cancelChildren()
-        sound.soundPool?.release()
+        soundPool?.release()
     }
 
     private fun setOpglArray() {
@@ -406,34 +396,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         //したがって描画を新しいリズム・テンポで作成し関連するopgl変数を変更してから
         //opglOneBarDotsを更新する。（配列をオブジェクトしてから、上記対応をとったにもかかわらず
         //Out of Boundsが新たに発生）
-        Log.i("Animation描画用配列作成開始！", "tempo: $tempo, rhythm: $rhythm")
         oneBarFrame = 1
-        val lpArray = LogicalPosArray(rhythm, tempo, motionYMultiplier)
-        val animArray = AnimationArray(rhythm, tempo, radiusMultiplier, gradationMultiplier)
-        if (lpArray.setLogicalPosArray(bmpBeat)
-            && animArray.radiusArray()
-            && animArray.gradationArray()
-        ) {
-            halfBeatFrame = ut.halfBeatFrame(tempo)
-            oneBeatFrame = halfBeatFrame * 2
-            oneBarFrame = ut.oneBarFrame(tempo, rhythm)
-        }
+        val lp = LogicalPosArray(rhythm, tempo, motionYMultiplier)
+        lp.setLogicalPosArray(bmpBeat)
+        halfBeatFrame = ut.halfBeatFrame(tempo)
+        oneBeatFrame = halfBeatFrame * 2
+        oneBarFrame = ut.oneBarFrame(tempo, rhythm)
+
     }
 
     private fun setOpglLineArray() {
         //停止中のラインの頂点を作成する。
         val tempoAtLineDraw = 20
-        Log.i("Line描画用配列作成開始！", "tempo: $tempoAtLineDraw, rhythm: $rhythm")
         oneBarFrame = 1
-        val lpArray = LogicalPosArray(rhythm, tempoAtLineDraw, 1.0)
-        val animArray =
-            AnimationArray(rhythm, tempoAtLineDraw, radiusMultiplier, gradationMultiplier)
-        if (lpArray.setLogicalPosArray(bmpBeat)
-            && animArray.radiusArray()
-            && animArray.gradationArray()
-        ) {
-            oneBarFrame = ut.oneBarFrame(tempoAtLineDraw, rhythm)
-        }
+        val lp = LogicalPosArray(rhythm, tempoAtLineDraw, 1.0)
+        lp.setLogicalPosArray(bmpBeat)
+        oneBarFrame = ut.oneBarFrame(tempoAtLineDraw, rhythm)
+
     }
 
     fun loadBitmapNumber() {
@@ -460,11 +439,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     //音声ファイルを準備する。
-    fun loadSound(voice: String) {
+    fun setSoundList(voice: String) {
         //選択されたVoiceに対する音声ファイルを読み込む。
         lstResIdOnbeatAll = mutableListOf()
         when (voice) {
-            "Voice" -> {
+            Voice.name -> {
                 lstResIdOnbeatAll.add(R.raw.one)
                 lstResIdOnbeatAll.add(R.raw.two)
                 lstResIdOnbeatAll.add(R.raw.three)
@@ -473,9 +452,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 lstResIdOnbeatAll.add(R.raw.six)
                 lstResIdOnbeatAll.add(R.raw.seven)
                 spOffbeatVoice = R.raw.and
-                spOffbeatVoice2 = R.raw.and
             }
-            "Click" -> {
+            Click.name -> {
                 lstResIdOnbeatAll.add(R.raw.piin)
                 lstResIdOnbeatAll.add(R.raw.pon)
                 lstResIdOnbeatAll.add(R.raw.pon)
@@ -484,7 +462,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 lstResIdOnbeatAll.add(R.raw.pon)
                 lstResIdOnbeatAll.add(R.raw.pon)
                 spOffbeatVoice = R.raw.kattu
-                spOffbeatVoice2 = R.raw.kattu
             }
         }
         //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
@@ -496,14 +473,31 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             lstSpOnbeat.add(lstResIdOnbeatAll[j])
         }
     }
+    fun setSoundPool() {
+        SoundPool.Builder().run {
+            val audioAttributes = AudioAttributes.Builder().run {
+                setUsage(AudioAttributes.USAGE_MEDIA)
+                build()
+            }
+            setMaxStreams(20)
+            setAudioAttributes(audioAttributes)
+            build()
+        }.also { soundPool = it }
+        //表拍
+        for (i in 0 until rhythm) {
+            soundPool?.load(applicationContext, lstSpOnbeat[i], 1)?.let { lstSpOnbeat[i] = it }
+        }
+        //裏拍
+        soundPool?.load(applicationContext, spOffbeatVoice, 1)?.let { spOffbeatVoice = it }
+    }
 
     fun prepareTempo(tempoLabel: String): Int {
         return when (tempoLabel) {
-            "Grave" -> 40
-            "Largo" -> 46
-            "Lento" -> 52
+            "Grave" -> 36
+            "Largo" -> 42
+            "Lento" -> 50
             "Adagio" -> 56
-            "Adagietto" -> 63
+            "Adagietto" -> 60
             "Andante" -> 72
             "Moderate" -> 90
             "Allegretto" -> 108
@@ -514,8 +508,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     companion object {
         private const val tagMsg = "My_MainActivity"
-
-        //*************** 拡張関数 *****************************************************
-        fun Int.mPow(multiplier: Double = 2.0) = this.toDouble().pow(multiplier)
     }
 }
