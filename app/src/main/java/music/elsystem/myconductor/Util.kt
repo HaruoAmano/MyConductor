@@ -2,7 +2,6 @@ package music.elsystem.myconductor
 
 import android.widget.Spinner
 import android.widget.TextView
-import music.elsystem.myconductor.Common.tempo
 import music.elsystem.myconductor.Common.bitmapX
 import music.elsystem.myconductor.Common.bitmapY
 import music.elsystem.myconductor.Common.offBeatNum
@@ -10,9 +9,6 @@ import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.tactType
 import music.elsystem.myconductor.Common.Tact.*
-import music.elsystem.myconductor.GraphicValue.halfBeatFrame
-import music.elsystem.myconductor.GraphicValue.oneBarFrame
-import music.elsystem.myconductor.GraphicValue.oneBeatFrame
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -73,26 +69,27 @@ class Util() {
         return temporaryOneBeatFrame
     }
 
-    fun oneBarFrame(rhythm: Int): Int {
-        return oneBeatFrame * rhythm
+    fun oneBarFrame(rhythm: Int,tempo: Int): Int {
+        return oneBeatFrame(tempo) * rhythm
     }
 
-    fun changeTempo(newTempo: Int, textView: TextView, spinner: Spinner,rhythm: Int) {
+    fun changeTempo(newTempo: Int, textView: TextView, spinner: Spinner) :Int{
+        val pvTempo :Int
         when {
             newTempo < 20 -> {
                 textView.text = "20"
-                tempo = 20
+                pvTempo = 20
             }
             newTempo >= 144 -> {
                 textView.text = "144"
-                tempo = 144
+                pvTempo = 144
             }
             else -> {
                 textView.text = newTempo.toString()
-                tempo = newTempo
+                pvTempo = newTempo
             }
         }
-        when (tempo) {
+        when (pvTempo) {
             in 25..42 -> spinner.setSelection(0) //"Grave"
             in 43..49 -> spinner.setSelection(1) //"Largo"
             in 50..53 -> spinner.setSelection(2) //"Lento"
@@ -103,6 +100,7 @@ class Util() {
             in 96..119 -> spinner.setSelection(7) //"Allegretto"
             in 120..144 -> spinner.setSelection(8) //"Allegro"
         }
+        return pvTempo
     }
 
     //コーディングしたプリミティブ型を GPU に転送するためにバッファ型に

@@ -1,4 +1,4 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.gldraw.dotDraw
 
 import android.opengl.GLES20.*
 import music.elsystem.myconductor.Common

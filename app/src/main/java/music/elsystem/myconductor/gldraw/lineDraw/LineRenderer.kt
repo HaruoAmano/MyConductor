@@ -1,24 +1,30 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.gldraw.lineDraw
 
+import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
 import android.util.Log
-import music.elsystem.myconductor.GraphicValue.logicalX
-import music.elsystem.myconductor.GraphicValue.logicalY
-import music.elsystem.myconductor.GraphicValue.oneBarFrame
 import music.elsystem.myconductor.Util
+import music.elsystem.myconductor.gldraw.LogicalPosArray
 import music.elsystem.myconductor.gldraw.Shader.lineFragmentSource
 import music.elsystem.myconductor.gldraw.Shader.lineVertexSource
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class LineRenderer : GLSurfaceView.Renderer {
+class LineRenderer(val rhythm:Int, private val bmpBeat:Bitmap?) : GLSurfaceView.Renderer {
     private var mProgramId = 0
     private val mViewAndProjectionMatrix = FloatArray(16)
     private val ut = Util()
-    private var frameCount = 0
+    private var oneBarFrame = ut.oneBarFrame(rhythm,20)
+    val lp = LogicalPosArray(rhythm, 20, 1.0)
+    //ドットのマッピング配列
+    var logicalX: MutableList<Int> = mutableListOf()
+    var logicalY: MutableList<Int> = mutableListOf()
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
+        val lpResult = lp.setDotLogicalPosList(bmpBeat)
+        logicalX = lpResult.first
+        logicalY = lpResult.second
         //画面クリア時の色の設定。（０～1を指定する。）
         GLES20.glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
         //バーテックスシェーダーのコンパイル

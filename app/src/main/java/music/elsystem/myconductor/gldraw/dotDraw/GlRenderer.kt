@@ -1,28 +1,19 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.gldraw.dotDraw
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import android.util.Log
 import music.elsystem.myconductor.Common.Tact.*
 import music.elsystem.myconductor.Common.alphaMultiplier
 import music.elsystem.myconductor.Common.justTappedSw
-import music.elsystem.myconductor.Common.justTappedSoundSw
-import music.elsystem.myconductor.Common.lstSpOnbeat
-import music.elsystem.myconductor.Common.offBeatNum
 import music.elsystem.myconductor.Common.radiusMultiplier
-import music.elsystem.myconductor.Common.rhythm
-import music.elsystem.myconductor.Common.soundPool
-import music.elsystem.myconductor.Common.spOffbeatVoice
 import music.elsystem.myconductor.Common.tactType
 import music.elsystem.myconductor.GraphicValue.dotSize
-import music.elsystem.myconductor.GraphicValue.halfBeatFrame
-import music.elsystem.myconductor.GraphicValue.logicalX
-import music.elsystem.myconductor.GraphicValue.logicalY
-import music.elsystem.myconductor.GraphicValue.numberPosXList
-import music.elsystem.myconductor.GraphicValue.numberPosYList
-import music.elsystem.myconductor.GraphicValue.oneBarFrame
-import music.elsystem.myconductor.GraphicValue.oneBeatFrame
+import music.elsystem.myconductor.Util
+import music.elsystem.myconductor.gldraw.Circle
+import music.elsystem.myconductor.gldraw.LogicalPosArray
 import music.elsystem.myconductor.gldraw.Shader.dotFagmentSource
 import music.elsystem.myconductor.gldraw.Shader.dotVertexSource
 import music.elsystem.myconductor.gldraw.Shader.numberFragmentSource
@@ -31,18 +22,57 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.pow
 
-class GlRenderer : GLSurfaceView.Renderer {
+class GlRenderer(
+    private val context: Context,
+    private val rhythm: Int,
+    private val tempo: Int,
+    private val bmpBeat: Bitmap?,
+    private val voice: String,
+    private val motionYMultiplier: Double
+) : GLSurfaceView.Renderer {
+    //シェーダプログラムID
     private var dotProgramId = 0
     private var numberProgramId = 0
+    //ヴュー＆プロジェクションマッピング行列
     private val mViewAndProjectionMatrix = FloatArray(16)
-    private var frameCount = 0
+    //ドット描画クラス
     private val circle = Circle()
+    //打点ナンバー描画クラス
     private val numDraw = NumDraw()
-    private val mesh = Mesh()
+    //打点ナンバーのテクスチャ（ピクチャ）数
     private val textureArrayNum = IntArray(rhythm)
+    //メッシュ描画クラス（テスト用）
+    private val mesh = Mesh()
+    //サウンドクラス
+    private  var sound = Sound()
+    //onDrawFrameが実行されるごとにインクリメントされる。一小節中の特定のドットを
+    //指し示すために使用する。
+    private var frameCount = 0
+    //ドットサイズ変化割合の係数
     private var radiusCoefficient = 0.0
+    //アルファ変化割合の係数
     private var alphaCoefficient = 0.0
+    private val ut = Util()
+    //UIで指定された一小節フレーム内の各要素を描画のに必要なフレーム数。
+    private val halfBeatFrame = ut.halfBeatFrame(tempo)
+    private val oneBeatFrame = ut.oneBeatFrame(tempo)
+    private val oneBarFrame = ut.oneBarFrame(rhythm, tempo)
+    val lp = LogicalPosArray(rhythm, tempo, motionYMultiplier)
+    //ドットのマッピング配列
+    var logicalX: MutableList<Int> = mutableListOf()
+    var logicalY: MutableList<Int> = mutableListOf()
+    //打点ナンバーのマッピング配列
+    var numberPosXList: MutableList<Int> = mutableListOf()
+    var numberPosYList: MutableList<Int> = mutableListOf()
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
+        val lpDotResult = lp.setDotLogicalPosList(bmpBeat)
+        logicalX = lpDotResult.first
+        logicalY = lpDotResult.second
+        val lpNumResult = lp.setNumLogicalPosList()
+        numberPosXList = lpNumResult.first
+        numberPosYList = lpNumResult.second
+        sound.setSoundList(voice,rhythm)
+        sound.setSoundPool(context,rhythm)
         //画面クリア時の色の設定。（０～1を指定する。）
         glClearColor(0.3f, 0.3f, 1.0f, 1.0f)
         //ドットプログラムオブジェクトの準備************************************
@@ -80,20 +110,10 @@ class GlRenderer : GLSurfaceView.Renderer {
     override fun onSurfaceChanged(gl10: GL10, width: Int, height: Int) {
         //ビューの切り替えの都度、最初（アウフタクト）から描画し始める。
         frameCount = 0
-        //これは ビューポート変換 をする時の幅と高さを設定する。ここでは x, y 座標に 0 を、
-        //幅と高さには width と height をそのまま渡しているので、Android の画面全体を
-        //ビューポートとして設定していることになる。
         glViewport(0, 0, width, height)
         val projectionMatrix = FloatArray(16)
         val viewMatrix = FloatArray(16)
-
-        //次にバーテックスシェーダの座標変換の記事で扱った ビュー座標変換 と 射影変換 をするための変換行列を生成して、
-        // その 2 つを掛け合わせてまとめている。
-        //カメラの位置は (0, 0, 1)、カメラの注視点は (0, 0, 0)、そしてカメラの上方向は (0, 1, 0) になっているので、
-        // 原点より少し手前の位置から原点を見ているカメラを配置していることになる。
         Matrix.setLookAtM(viewMatrix, 0, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f)
-        // そして射影変換については、
-        // 原点を中心として幅が width、高さが height の長方形があって、その奥行は 2 の立方体をクリッピング空間としている。
         Matrix.orthoM(
             projectionMatrix,
             0,
@@ -112,8 +132,6 @@ class GlRenderer : GLSurfaceView.Renderer {
         //画面クリア
         //最初に glClearColor で設定した色で初期化される。
         glClear(GL_COLOR_BUFFER_BIT)
-        //ワールド座標変換・ヴューポート変換についてはドット・ナンバーで共用。
-        //ワールド座標変換行列の生成～転送（頂点・カラーデータについてはdrawLine関数で行う。
         val worldMatrix = FloatArray(16)
         Matrix.setIdentityM(worldMatrix, 0)
         //シェーダ内変数へデータ転送
@@ -154,9 +172,6 @@ class GlRenderer : GLSurfaceView.Renderer {
 
         }
         val lowerFrameNum = (halfBeatFrame * perOfHalfBeat).toInt()
-//        Log.i("@@@@", "halfBeatFrame: $halfBeatFrame")
-//        Log.i("@@@@", "perOfHalfBeat: $perOfHalfBeat")
-//        Log.i("@@@@", "upperHalfFrameNum: ${lowerFrameNum}")
         var l = 0
         //拍数分ループ
         for (i in 0 until rhythm) {
@@ -204,12 +219,11 @@ class GlRenderer : GLSurfaceView.Renderer {
                     1f, 1f, 1f, alphaCoefficient.toFloat()
                 )
                 l += 1
-//                    Log.i("@@@@", "l:$l")
             }
 
         }
         //メッシュの描画を行う（テスト用）場合に呼ぶ。********************************************
-//        mesh.drawMesh(dotProgramId)
+        //mesh.drawMesh(dotProgramId)
         //打点の数字を描画する。***************************************************************
         glUseProgram(numberProgramId)
         glUniformMatrix4fv(uniLoc1, 1, false, mViewAndProjectionMatrix, 0)
@@ -233,7 +247,8 @@ class GlRenderer : GLSurfaceView.Renderer {
                 numberId = frameCount / oneBeatFrame
             }
             Swing.name -> {
-
+                alpha = 1f - ((frameCount % oneBeatFrame) / oneBeatFrame.toFloat()).pow(5.0f)
+                numberId = frameCount / oneBeatFrame
             }
         }
         //最初のタイミングで最終拍のナンバーが表示されるのを回避する。
@@ -251,52 +266,7 @@ class GlRenderer : GLSurfaceView.Renderer {
             )
         }
         //メトロノームサウンドを鳴らす。**********************************************************
-        //最初のタイミングで最終拍が発音されるのを回避する。
-        if (frameCount / oneBeatFrame > 0) {
-            justTappedSoundSw = false
-        }
-//        Log.i("GlRenderer", "minInterval:$minInterval")
-        if (!justTappedSoundSw) {
-            when (tactType) {
-                Heavy.name, Normal.name -> {
-                    //メトロノームの最小時間単位を算出する。
-                    val minInterval = oneBeatFrame / offBeatNum
-                    if (frameCount % minInterval == 0) {
-                        //表拍
-                        if (frameCount % oneBeatFrame == 0) {
-                            soundPool?.play(
-                                lstSpOnbeat[frameCount / oneBeatFrame],
-                                1.0f,
-                                1.0f,
-                                1,
-                                0,
-                                1.0f
-                            )
-                        } else {
-                            soundPool?.play(spOffbeatVoice, 0.8f, 0.8f, 1, 0, 1.0f)
-                        }
-                    }
-                }
-                Swing.name -> {
-                    when ((frameCount % oneBeatFrame) / (halfBeatFrame / 2).toFloat()) {
-                        0f -> {
-                            soundPool?.play(
-                                lstSpOnbeat[frameCount / oneBeatFrame],
-                                1.0f,
-                                1.0f,
-                                1,
-                                0,
-                                1.0f
-                            )
-                        }
-                        2f -> {
-                            soundPool?.play(spOffbeatVoice, 0.8f, 0.8f, 1, 0, 1.0f)
-                        }
-                    }
-                }
-            }
-        }
-
+        sound.sound(halfBeatFrame,oneBeatFrame,frameCount)
         //**********************************************************************
         frameCount++
         if (frameCount >= oneBarFrame) {

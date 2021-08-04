@@ -10,8 +10,7 @@ object Common {
     var bitmapX =0
     var bitmapY =0
     //リスナーインターフェースで使用する項目
-    var rhythm = 4
-    var tempo = 60
+
     var tactType = Tact.Normal.name
     var motionYMultiplier = 1.0
     var radiusMultiplier = 1.0
@@ -25,13 +24,6 @@ object Common {
     //サウンド関連*****************************************************************
     //サウンドの裏拍数
     var offBeatNum = 1
-    var lstResIdOnbeatAll: MutableList<Int>  = mutableListOf()
-    var lstSpOnbeat: MutableList<Int>  = mutableListOf()
-    var spOffbeatVoice = 0
-    var spOffbeatVoice3 = 0
-    var spOffbeatVoice4 = 0
-
-    var soundPool: SoundPool? = null
     enum class SoundName {
         Voice,
         Click

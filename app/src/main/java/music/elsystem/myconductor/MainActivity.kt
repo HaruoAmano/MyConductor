@@ -4,8 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.AudioAttributes
-import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -23,30 +21,28 @@ import music.elsystem.myconductor.Common.bitmapY
 import music.elsystem.myconductor.Common.alphaMultiplier
 import music.elsystem.myconductor.Common.justTappedSw
 import music.elsystem.myconductor.Common.justTappedSoundSw
-import music.elsystem.myconductor.Common.lstResIdOnbeatAll
-import music.elsystem.myconductor.Common.lstSpOnbeat
 import music.elsystem.myconductor.Common.motionYMultiplier
 import music.elsystem.myconductor.Common.offBeatNum
 import music.elsystem.myconductor.Common.radiusMultiplier
-import music.elsystem.myconductor.Common.rhythm
-import music.elsystem.myconductor.Common.soundPool
-import music.elsystem.myconductor.Common.spOffbeatVoice
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.Tact.*
 import music.elsystem.myconductor.Common.tactType
-import music.elsystem.myconductor.Common.tempo
 import music.elsystem.myconductor.GraphicValue.dotSize
-import music.elsystem.myconductor.GraphicValue.halfBeatFrame
 import music.elsystem.myconductor.GraphicValue.numberBitmapList
-import music.elsystem.myconductor.GraphicValue.oneBarFrame
-import music.elsystem.myconductor.GraphicValue.oneBeatFrame
 import music.elsystem.myconductor.databinding.ActivityMainBinding
+import music.elsystem.myconductor.gldraw.dotDraw.GlSurfaceView
+import music.elsystem.myconductor.gldraw.dotDraw.Sound
+import music.elsystem.myconductor.gldraw.lineDraw.LineSurfaceView
+import kotlin.math.ceil
 
 class MainActivity : AppCompatActivity() {
     private val bd by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val ut = Util()
     var bmpBeat: Bitmap? = null
+
+    var rhythm = 4
+    var tempo = 60
 
     //描画中かどうか（
     var isStarted = false
@@ -86,8 +82,9 @@ class MainActivity : AppCompatActivity() {
         bitmapY = bmpBeat?.let { it.height } ?: 0
         loadBitmapNumber()
         //サウンドファイルを読み込みサウンドプールにセットする。
-        setSoundList(voice)
-        setSoundPool()
+//        val sound = Sound()
+//        sound.setSoundList(voice,rhythm)
+//        sound.setSoundPool(applicationContext,rhythm)
         //タクト　ラジオボタン
         bd.rgTact.check(bd.rbNormal.id)
         bd.rgTact.setOnCheckedChangeListener { _, checkedId ->
@@ -116,8 +113,8 @@ class MainActivity : AppCompatActivity() {
                     voice = Click.name
                 }
             }
-            setSoundList(voice)
-            setSoundPool()
+//            sound.setSoundList(voice,rhythm)
+//            sound.setSoundPool(applicationContext,rhythm)
         }
         //裏拍の刻み　NONE or２ or ３
         bd.rgOffBeatNum.check(bd.rbNone.id)
@@ -162,35 +159,31 @@ class MainActivity : AppCompatActivity() {
             }
         //********* btn < *********************************************************
         bd.btnTempoMm.setOnClickListener {
-            ut.changeTempo(
-                tempo - Math.ceil(tempo / 25.0).toInt(),
+            tempo = ut.changeTempo(
+                tempo - ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
-                bd.spnTempoLabel,
-                rhythm
+                bd.spnTempoLabel
             )
         }
         bd.btnTempoM1.setOnClickListener {
-            ut.changeTempo(
+            tempo = ut.changeTempo(
                 tempo - 1,
                 bd.tvTempo,
-                bd.spnTempoLabel,
-                rhythm
+                bd.spnTempoLabel
             )
         }
         bd.btnTempoP1.setOnClickListener {
-            ut.changeTempo(
+            tempo = ut.changeTempo(
                 tempo + 1,
                 bd.tvTempo,
-                bd.spnTempoLabel,
-                rhythm
+                bd.spnTempoLabel
             )
         }
         bd.btnTempoPp.setOnClickListener {
-            ut.changeTempo(
-                tempo + Math.ceil(tempo / 25.0).toInt(),
+            tempo = ut.changeTempo(
+                tempo + ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
-                bd.spnTempoLabel,
-                rhythm
+                bd.spnTempoLabel
             )
         }
 
@@ -239,12 +232,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     bitmapX = bmpBeat?.let { it.width } ?: 0
                     bitmapY = bmpBeat?.let { it.height } ?: 0
-                    //描画に使用される数字のビットマップリストを生成する。
-                    ut.changeTempo(tempo, bd.tvTempo, bd.spnTempoLabel, rhythm)
+                    //拍子変更に関わる以下の項目を設定する。
+                    //描画に使用される数字のビットマップリスト。
                     setNumberList()
-                    setOpglLineArray()
-                    setSoundList(voice)
-                    setSoundPool()
+                    //メトロノーム音声
+//                    sound.setSoundList(voice,rhythm)
+//                    sound.setSoundPool(applicationContext,rhythm)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -357,16 +350,16 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         //********* サーフェスビュークリック時の設定*****************************
-        val lineSurfaceview = LineSurfaceView(this)
-        val glSurfaceview = GlSurfaceView(this)
-//        setOpglLineArray()
-//        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+        //GlSurfaceViewの生成（addView時はテンポ変更等を反映させるため必ずSurfaceViewの更新を行う。）
+        var lineSurfaceview = LineSurfaceView(this, rhythm, bmpBeat)
+        var glSurfaceview = GlSurfaceView(this, rhythm, tempo, bmpBeat, voice, motionYMultiplier)
+        bd.layoutGlSurfaceView.addView(lineSurfaceview)
         bd.layoutGlSurfaceView.setOnClickListener {
             //アニメーション描画を開始する。
             if (!isStarted) {
                 //サウンドの再生はGlRendererから実行される。
                 bd.layoutGlSurfaceView.removeView(lineSurfaceview)
-                setOpglArray()
+                glSurfaceview = GlSurfaceView(this, rhythm, tempo, bmpBeat, voice, motionYMultiplier)
                 bd.layoutGlSurfaceView.addView(glSurfaceview)
                 //再生中はスリープ状態にならないように設定する。
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -376,7 +369,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 //ライン描画のサーフェスビューを表示する。
                 bd.layoutGlSurfaceView.removeView(glSurfaceview)
-                setOpglLineArray()
+                lineSurfaceview = LineSurfaceView(this, rhythm, bmpBeat)
                 bd.layoutGlSurfaceView.addView(lineSurfaceview)
                 //メトロノームを停止する。
                 isStarted = false
@@ -385,38 +378,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     //********************** onCreate終了 ***********************************************
-    override fun onResume() {
-        super.onResume()
-//        sound.setSoundPool(this)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        soundPool?.release()
-    }
-
-    private fun setOpglArray() {
-        //論理的頂点座標の作成。
-        //実際にはBEAT,TEMPO変更時に呼び出すこととなる。
-        //opgl変数はレンダーと変数を共有しているため、vertex等を書き換える前にopglOneBarDotsを
-        //変更すると、配列数の不整合が生じOut of Boundsエラーとなる。
-        //したがって描画を新しいリズム・テンポで作成し関連するopgl変数を変更してから
-        //opglOneBarDotsを更新する。（配列をオブジェクトしてから、上記対応をとったにもかかわらず
-        //Out of Boundsが新たに発生）
-//        oneBarFrame = 1
-        halfBeatFrame = ut.halfBeatFrame(tempo)
-        oneBeatFrame = ut.oneBeatFrame(tempo)
-        oneBarFrame = ut.oneBarFrame(rhythm)
-        val lp = LogicalPosArray(rhythm, tempo, motionYMultiplier)
-        lp.setLogicalPosArray(bmpBeat)
-    }
-
-    private fun setOpglLineArray() {
-        //停止中のラインの頂点を作成する。
-//        oneBarFrame = 1
-        val lp = LogicalPosArray(rhythm, 20, 1.0)
-        lp.setLogicalPosArray(bmpBeat)
-    }
 
     fun loadBitmapNumber() {
         //描画に使用される数字のビットマップすべてをリスト読み込む。
@@ -441,59 +402,59 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //音声ファイルを準備する。
-    fun setSoundList(voice: String) {
-        //選択されたVoiceに対する音声ファイルを読み込む。
-        lstResIdOnbeatAll = mutableListOf()
-        when (voice) {
-            Voice.name -> {
-                lstResIdOnbeatAll.add(R.raw.one)
-                lstResIdOnbeatAll.add(R.raw.two)
-                lstResIdOnbeatAll.add(R.raw.three)
-                lstResIdOnbeatAll.add(R.raw.four)
-                lstResIdOnbeatAll.add(R.raw.five)
-                lstResIdOnbeatAll.add(R.raw.six)
-                lstResIdOnbeatAll.add(R.raw.seven)
-                spOffbeatVoice = R.raw.and
-            }
-            Click.name -> {
-                lstResIdOnbeatAll.add(R.raw.piin)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                lstResIdOnbeatAll.add(R.raw.pon)
-                spOffbeatVoice = R.raw.kattu
-            }
-        }
-        //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
-        //４拍子であればfour[0],one[1],two[2],three[3]の様になる。
-        lstSpOnbeat = mutableListOf()
-        var j: Int
-        for (i in 0 until rhythm) {
-            j = (((rhythm - 1) + i) % rhythm)
-            lstSpOnbeat.add(lstResIdOnbeatAll[j])
-        }
-    }
-
-    fun setSoundPool() {
-        SoundPool.Builder().run {
-            val audioAttributes = AudioAttributes.Builder().run {
-                setUsage(AudioAttributes.USAGE_MEDIA)
-                build()
-            }
-            setMaxStreams(20)
-            setAudioAttributes(audioAttributes)
-            build()
-        }.also { soundPool = it }
-        //表拍
-        for (i in 0 until rhythm) {
-            soundPool?.load(applicationContext, lstSpOnbeat[i], 1)?.let { lstSpOnbeat[i] = it }
-        }
-        //裏拍
-        soundPool?.load(applicationContext, spOffbeatVoice, 1)?.let { spOffbeatVoice = it }
-    }
+//    //音声ファイルを準備する。
+//    fun setSoundList(voice: String) {
+//        //選択されたVoiceに対する音声ファイルを読み込む。
+//        lstResIdOnbeatAll = mutableListOf()
+//        when (voice) {
+//            Voice.name -> {
+//                lstResIdOnbeatAll.add(R.raw.one)
+//                lstResIdOnbeatAll.add(R.raw.two)
+//                lstResIdOnbeatAll.add(R.raw.three)
+//                lstResIdOnbeatAll.add(R.raw.four)
+//                lstResIdOnbeatAll.add(R.raw.five)
+//                lstResIdOnbeatAll.add(R.raw.six)
+//                lstResIdOnbeatAll.add(R.raw.seven)
+//                spOffbeatVoice = R.raw.and
+//            }
+//            Click.name -> {
+//                lstResIdOnbeatAll.add(R.raw.piin)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                lstResIdOnbeatAll.add(R.raw.pon)
+//                spOffbeatVoice = R.raw.kattu
+//            }
+//        }
+//        //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
+//        //４拍子であればfour[0],one[1],two[2],three[3]の様になる。
+//        lstSpOnbeat = mutableListOf()
+//        var j: Int
+//        for (i in 0 until rhythm) {
+//            j = (((rhythm - 1) + i) % rhythm)
+//            lstSpOnbeat.add(lstResIdOnbeatAll[j])
+//        }
+//    }
+//
+//    fun setSoundPool() {
+//        SoundPool.Builder().run {
+//            val audioAttributes = AudioAttributes.Builder().run {
+//                setUsage(AudioAttributes.USAGE_MEDIA)
+//                build()
+//            }
+//            setMaxStreams(20)
+//            setAudioAttributes(audioAttributes)
+//            build()
+//        }.also { soundPool = it }
+//        //表拍
+//        for (i in 0 until rhythm) {
+//            soundPool?.load(applicationContext, lstSpOnbeat[i], 1)?.let { lstSpOnbeat[i] = it }
+//        }
+//        //裏拍
+//        soundPool?.load(applicationContext, spOffbeatVoice, 1)?.let { spOffbeatVoice = it }
+//    }
 
     fun prepareTempo(tempoLabel: String): Int {
         return when (tempoLabel) {
