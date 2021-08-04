@@ -39,8 +39,8 @@ class AnimationArray{
 class Util{
     +coX(x: Int): Float
     +coY(y: Int): Float
-    +halfBeatDots(tempo:Int) :Int
-    +oneBarDots(tempo:Int, rhythm:Int) :Int
+    +halfBeatFrame(tempo:Int) :Int
+    +oneBarFrame(tempo:Int, rhythm:Int) :Int
     +convert(data: FloatArray): FloatBuffer
 }
 

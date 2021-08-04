@@ -130,76 +130,83 @@ class GlRenderer : GLSurfaceView.Renderer {
         glUseProgram(dotProgramId)
         glUniformMatrix4fv(uniLoc1, 1, false, mViewAndProjectionMatrix, 0)
         glUniformMatrix4fv(uniLoc2, 1, false, worldMatrix, 0)
-        var l = 0
         //１フレーム分（パラパラ漫画一枚分）の描画を行う。
         //i:一小節分（パラパラ漫画一枚分）のインデックス
         //l:一小節（パラパラ漫画一枚）の中でどの点を強調するかに関わるインデックス
-        //Tact=Heavyの時、ドットサイズの打点からの折り返し地点を管理
-        var perOfHalfBeat = 0.7f
-        //Tact=Heavyの時、上側のドットサイズを管理
-        val ratioUpAndDown = 0.85f
+        //ドットサイズ（ライン内での変化の割合）に関するパラメータ
+        //ドットサイズの打点からの折り返し地点を管理
+        var perOfHalfBeat = 0.0f
+        //上側のドットサイズを管理
+        var ratioUpAndDown = 0.0f
+        when (tactType) {
+            Heavy.name -> {
+                perOfHalfBeat = 0.7f
+                ratioUpAndDown = 0.85f
+            }
+            Normal.name -> {
+                perOfHalfBeat = 1.0f
+                ratioUpAndDown = 0.0f
+            }
+            Swing.name -> {
+                perOfHalfBeat = 0.5f
+                ratioUpAndDown = 1.1f
+            }
+
+        }
         val lowerFrameNum = (halfBeatFrame * perOfHalfBeat).toInt()
 //        Log.i("@@@@", "halfBeatFrame: $halfBeatFrame")
 //        Log.i("@@@@", "perOfHalfBeat: $perOfHalfBeat")
 //        Log.i("@@@@", "upperHalfFrameNum: ${lowerFrameNum}")
-        for (i in 0 until oneBarFrame) {
-            //radiusの大きさの基準となる係数を計算する。（最大値はここでは１）
-            when (tactType) {
-                Heavy.name -> {
-                    if ((i / halfBeatFrame) % 2 == 0) {
-                        //表から裏へのライン
-//                        Log.i("@@@@", "表から裏へのライン")
-                        if (i % halfBeatFrame < lowerFrameNum) {
-                            radiusCoefficient =
-                                (halfBeatFrame - (i % halfBeatFrame)).radiusPow() / halfBeatFrame.radiusPow()
+        var l = 0
+        //拍数分ループ
+        for (i in 0 until rhythm) {
+            //一拍のフレーム分ループ
+            for (k in 0 until oneBeatFrame) {
+                //radiusの大きさの基準となる係数を計算する。（最大値はここでは１）
+                if (k / halfBeatFrame % 2 == 0) {
+                    //表から裏へのライン
+                    if (k % halfBeatFrame < lowerFrameNum) {
+                        //下半分のドットに対する処理
+                        radiusCoefficient =
+                            (halfBeatFrame - (k % halfBeatFrame)).radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 下半分radiusCoefficient: $radiusCoefficient")
-                        } else {
-                            radiusCoefficient =
-                                ((i % halfBeatFrame) * ratioUpAndDown).toInt().radiusPow() / halfBeatFrame.radiusPow()
-//                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
-                        }
                     } else {
-                        //裏から表へのライン
-//                        Log.i("@@@@", "裏から表へのライン")
-                        if (i % halfBeatFrame < (halfBeatFrame - lowerFrameNum)) {
-                            radiusCoefficient =
-                                ((halfBeatFrame - (i % halfBeatFrame)) * ratioUpAndDown).toInt().radiusPow() / halfBeatFrame.radiusPow()
+                        //上半分のドットに対する処理
+                        radiusCoefficient =
+                            ((k % halfBeatFrame) * ratioUpAndDown).toInt()
+                                .radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
-                        } else {
-                            radiusCoefficient =
-                                (i % halfBeatFrame).radiusPow() / halfBeatFrame.radiusPow()
+                    }
+                } else {
+                    //裏から表へのライン
+                    if (k % halfBeatFrame < (halfBeatFrame - lowerFrameNum)) {
+                        //上半分のドットに対する処理
+                        radiusCoefficient =
+                            ((halfBeatFrame - (k % halfBeatFrame)) * ratioUpAndDown).toInt()
+                                .radiusPow() / halfBeatFrame.radiusPow()
+//                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
+                    } else {
+                        //下半分のドットに対する処理
+                        radiusCoefficient =
+                            (k % halfBeatFrame).radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 下半分radiusCoefficient: $radiusCoefficient")
-                        }
                     }
                 }
-                Normal.name -> {
-                    if ((i / halfBeatFrame) % 2 == 0) {
-                        //表から裏へのライン
-                        radiusCoefficient =
-                            (halfBeatFrame - (i % halfBeatFrame)).radiusPow() / halfBeatFrame.radiusPow()
-                    } else {
-                        //裏から表へのライン
-                        radiusCoefficient =
-                            (i % halfBeatFrame).radiusPow() / halfBeatFrame.radiusPow()
-                    }
-                }
-                Swing.name -> {
-
-                }
+                //alphaの基準となる係数を計算する。（最大値はここでは１）
+                alphaCoefficient =
+                    (((oneBarFrame - frameCount + l) % oneBarFrame).alphaPow() / oneBarFrame.alphaPow())
+                circle.drawCircle(
+                    dotProgramId,
+                    logicalX[l],
+                    logicalY[l],
+                    32,
+                    (radiusCoefficient * dotSize).toFloat() + 3.0f,
+                    1f, 1f, 1f, alphaCoefficient.toFloat()
+                )
+                l += 1
+//                    Log.i("@@@@", "l:$l")
             }
-            //gradationの大きさの基準となる係数を計算する。（最大値はここでは１）
-            alphaCoefficient =
-                (((oneBarFrame - frameCount + i) % oneBarFrame).alphaPow() / oneBarFrame.alphaPow())
-            circle.drawCircle(
-                dotProgramId,
-                logicalX[i],
-                logicalY[i],
-                //animRadiusはドットの半径は球を大きくする勢い。
-                //relativeYPosInLineはライン中の相対的な高さに連動し球の大きさを変える変数。
-                32,
-                (radiusCoefficient * dotSize).toFloat() + 3.0f,
-                1f, 1f, 1f, alphaCoefficient.toFloat()
-            )
+
         }
         //メッシュの描画を行う（テスト用）場合に呼ぶ。********************************************
 //        mesh.drawMesh(dotProgramId)
@@ -244,36 +251,52 @@ class GlRenderer : GLSurfaceView.Renderer {
             )
         }
         //メトロノームサウンドを鳴らす。**********************************************************
-        //メトロノームの最小時間単位を算出する。
-        val minInterval = oneBeatFrame / offBeatNum
         //最初のタイミングで最終拍が発音されるのを回避する。
         if (frameCount / oneBeatFrame > 0) {
             justTappedSoundSw = false
         }
 //        Log.i("GlRenderer", "minInterval:$minInterval")
         if (!justTappedSoundSw) {
-            if (frameCount % minInterval == 0) {
-                //表拍
-                if (frameCount % oneBeatFrame == 0) {
-                    soundPool?.play(
-                        lstSpOnbeat[frameCount / oneBeatFrame],
-                        1.0f,
-                        1.0f,
-                        1,
-                        0,
-                        1.0f
-                    )
-                } else {
-                    //裏拍
-//                    Log.i("GlRenderer", "frameCount % minInterval:${frameCount % minInterval}")
-//                    Log.i(
-//                        "GlRenderer",
-//                        "frameCount % oneBeatFrame:${frameCount % oneBeatFrame}"
-//                    )
-                    soundPool?.play(spOffbeatVoice, 0.8f, 0.8f, 1, 0, 1.0f)
+            when (tactType) {
+                Heavy.name, Normal.name -> {
+                    //メトロノームの最小時間単位を算出する。
+                    val minInterval = oneBeatFrame / offBeatNum
+                    if (frameCount % minInterval == 0) {
+                        //表拍
+                        if (frameCount % oneBeatFrame == 0) {
+                            soundPool?.play(
+                                lstSpOnbeat[frameCount / oneBeatFrame],
+                                1.0f,
+                                1.0f,
+                                1,
+                                0,
+                                1.0f
+                            )
+                        } else {
+                            soundPool?.play(spOffbeatVoice, 0.8f, 0.8f, 1, 0, 1.0f)
+                        }
+                    }
+                }
+                Swing.name -> {
+                    when ((frameCount % oneBeatFrame) / (halfBeatFrame / 2).toFloat()) {
+                        0f -> {
+                            soundPool?.play(
+                                lstSpOnbeat[frameCount / oneBeatFrame],
+                                1.0f,
+                                1.0f,
+                                1,
+                                0,
+                                1.0f
+                            )
+                        }
+                        2f -> {
+                            soundPool?.play(spOffbeatVoice, 0.8f, 0.8f, 1, 0, 1.0f)
+                        }
+                    }
                 }
             }
         }
+
         //**********************************************************************
         frameCount++
         if (frameCount >= oneBarFrame) {

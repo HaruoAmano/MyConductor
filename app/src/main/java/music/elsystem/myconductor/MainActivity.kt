@@ -53,6 +53,9 @@ class MainActivity : AppCompatActivity() {
     private val numberBitmapListAll: MutableList<Bitmap> = mutableListOf()
     private var tempoLabel = ""
 
+    //LogicalPosArrayをLine用に使用するかどうか。（ちゃんと設計すれば、この変数はいらないはず！）
+    var line = true
+
     //テンポのタップ指定に使用する。
     private val handler: Handler = Handler(Looper.getMainLooper())
 
@@ -162,28 +165,32 @@ class MainActivity : AppCompatActivity() {
             ut.changeTempo(
                 tempo - Math.ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
-                bd.spnTempoLabel
+                bd.spnTempoLabel,
+                rhythm
             )
         }
         bd.btnTempoM1.setOnClickListener {
             ut.changeTempo(
                 tempo - 1,
                 bd.tvTempo,
-                bd.spnTempoLabel
+                bd.spnTempoLabel,
+                rhythm
             )
         }
         bd.btnTempoP1.setOnClickListener {
             ut.changeTempo(
                 tempo + 1,
                 bd.tvTempo,
-                bd.spnTempoLabel
+                bd.spnTempoLabel,
+                rhythm
             )
         }
         bd.btnTempoPp.setOnClickListener {
             ut.changeTempo(
                 tempo + Math.ceil(tempo / 25.0).toInt(),
                 bd.tvTempo,
-                bd.spnTempoLabel
+                bd.spnTempoLabel,
+                rhythm
             )
         }
 
@@ -233,6 +240,7 @@ class MainActivity : AppCompatActivity() {
                     bitmapX = bmpBeat?.let { it.width } ?: 0
                     bitmapY = bmpBeat?.let { it.height } ?: 0
                     //描画に使用される数字のビットマップリストを生成する。
+                    ut.changeTempo(tempo, bd.tvTempo, bd.spnTempoLabel, rhythm)
                     setNumberList()
                     setOpglLineArray()
                     setSoundList(voice)
@@ -245,7 +253,7 @@ class MainActivity : AppCompatActivity() {
 
         //********* spnMotionYスピナーの設定（タクトの跳ね具合) *********************
         val motionYList = listOf(
-            0.5, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0 , 5.0
+            0.5, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0, 5.0
         )
         // spinner に adapter をセット
         bd.spnMotionY.adapter =
@@ -271,7 +279,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         //********* spnDotSizeスピナーの設定（球の大きさ) *********************
-        val dotSizeList = listOf(10f, 15f , 20f, 30f)
+        val dotSizeList = listOf(10f, 15f, 20f, 30f)
         // spinner に adapter をセット
         bd.spnDotSize.adapter =
             ArrayAdapter(applicationContext, R.layout.custom_spinner, dotSizeList).also {
@@ -297,7 +305,7 @@ class MainActivity : AppCompatActivity() {
 
         //********* spnRadiusスピナーの設定（ドットが大きくなる速さ) *********************
         val radiusList = listOf(
-            3.0,4.0,5.0
+            3.0, 4.0, 5.0
         )
         // spinner に adapter をセット
         bd.spnRadius.adapter =
@@ -324,7 +332,7 @@ class MainActivity : AppCompatActivity() {
 
         //********* spnAlphaスピナーの設定（αの減衰具合）*************
         val alphaList = listOf(
-            1.0, 1.5, 2.0 ,3.0, 4.0 ,5.0
+            1.0, 1.5, 2.0, 3.0, 4.0, 5.0
         )
         // spinner に adapter をセット
         bd.spnAlpha.adapter =
@@ -351,9 +359,8 @@ class MainActivity : AppCompatActivity() {
         //********* サーフェスビュークリック時の設定*****************************
         val lineSurfaceview = LineSurfaceView(this)
         val glSurfaceview = GlSurfaceView(this)
-        setOpglLineArray()
-        //初期状態はライン描画のサーフェスビューを表示する。
-        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+//        setOpglLineArray()
+//        bd.layoutGlSurfaceView.addView(lineSurfaceview)
         bd.layoutGlSurfaceView.setOnClickListener {
             //アニメーション描画を開始する。
             if (!isStarted) {
@@ -396,23 +403,19 @@ class MainActivity : AppCompatActivity() {
         //したがって描画を新しいリズム・テンポで作成し関連するopgl変数を変更してから
         //opglOneBarDotsを更新する。（配列をオブジェクトしてから、上記対応をとったにもかかわらず
         //Out of Boundsが新たに発生）
-        oneBarFrame = 1
+//        oneBarFrame = 1
+        halfBeatFrame = ut.halfBeatFrame(tempo)
+        oneBeatFrame = ut.oneBeatFrame(tempo)
+        oneBarFrame = ut.oneBarFrame(rhythm)
         val lp = LogicalPosArray(rhythm, tempo, motionYMultiplier)
         lp.setLogicalPosArray(bmpBeat)
-        halfBeatFrame = ut.halfBeatFrame(tempo)
-        oneBeatFrame = halfBeatFrame * 2
-        oneBarFrame = ut.oneBarFrame(tempo, rhythm)
-
     }
 
     private fun setOpglLineArray() {
         //停止中のラインの頂点を作成する。
-        val tempoAtLineDraw = 20
-        oneBarFrame = 1
-        val lp = LogicalPosArray(rhythm, tempoAtLineDraw, 1.0)
+//        oneBarFrame = 1
+        val lp = LogicalPosArray(rhythm, 20, 1.0)
         lp.setLogicalPosArray(bmpBeat)
-        oneBarFrame = ut.oneBarFrame(tempoAtLineDraw, rhythm)
-
     }
 
     fun loadBitmapNumber() {
@@ -473,6 +476,7 @@ class MainActivity : AppCompatActivity() {
             lstSpOnbeat.add(lstResIdOnbeatAll[j])
         }
     }
+
     fun setSoundPool() {
         SoundPool.Builder().run {
             val audioAttributes = AudioAttributes.Builder().run {

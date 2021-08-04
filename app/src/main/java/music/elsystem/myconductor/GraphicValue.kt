@@ -3,9 +3,9 @@ package music.elsystem.myconductor
 import android.graphics.Bitmap
 
 object GraphicValue {
-    var oneBarFrame = 0
-    var halfBeatFrame = 0
-    var oneBeatFrame = 0
+    var oneBarFrame = 1
+    var halfBeatFrame = 1
+    var oneBeatFrame = 1
     var dotSize = 0f
     //配列（ミュータブルリストとすることでobject（他モジュールから参照可能）でありながら可変とすることができる。
     var logicalX: MutableList<Int> = mutableListOf()

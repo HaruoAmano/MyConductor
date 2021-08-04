@@ -4,6 +4,7 @@ import android.os.Handler
 import android.view.View
 import android.widget.Spinner
 import android.widget.TextView
+import music.elsystem.myconductor.Common.rhythm
 
 class TapOnClickListener(
     private val handler: Handler,
@@ -31,7 +32,7 @@ class TapOnClickListener(
     override fun onClick(v: View) {
 
         if (count > 0) {
-            ut.changeTempo(6000 / count, textView, spinner)
+            ut.changeTempo(6000 / count, textView, spinner, rhythm)
         } else {
             handler.post(runnable)
         }

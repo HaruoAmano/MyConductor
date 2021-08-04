@@ -42,7 +42,7 @@ class LineRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceChanged(gl10: GL10, width: Int, height: Int) {
-        Log.i("onSurfaceChanged","")
+        Log.i("onSurfaceChanged", "")
         GLES20.glViewport(0, 0, width, height)
         val projectionMatrix = FloatArray(16)
         val viewMatrix = FloatArray(16)

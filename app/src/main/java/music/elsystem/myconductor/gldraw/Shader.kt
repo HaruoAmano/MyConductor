@@ -30,6 +30,7 @@ object Shader {
                 "attribute vec3 position;" +
                 "void main() {" +
                 "  gl_Position = vpMatrix * wMatrix * vec4(position, 1.0);" +
+//                "  gl_PointSize = 10.0f;" +
                 "}"
     //フラグメントシェーダ
     val lineFragmentSource = "precision mediump float;" +

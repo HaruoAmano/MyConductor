@@ -11,11 +11,11 @@
 //    (rhythm: Int, tempo: Int, private val radiusMultiplier: Double = 0.4,
 //     private val gradationMultiplier: Double = 0.4) {
 //    private val ut = Util()
-//    private val oneBarDots = ut.oneBarFrame(tempo, rhythm)
+//    private val oneBarFrame = ut.oneBarFrame(tempo, rhythm)
 //    //ドットサイズの変更を定義する関数
 //    fun radiusArray() :Boolean{
 //        animRadius = mutableListOf()
-//        for (i in 0 until oneBarDots) {
+//        for (i in 0 until oneBarFrame) {
 //            //iのmultiplier乗を算出し最大値が30、最小値が3となるように調整
 //            animRadius.add((30.0 / (i + 1).mPow(radiusMultiplier))
 //                .let { if (it > 1.0) { it } else { 1.0 } }.toFloat())
@@ -25,10 +25,10 @@
 //    //グラデーションの変更を定義する関数
 //    fun setGradationArray(){
 //        animGradation = mutableListOf()
-//        for (i in 0 until oneBarDots) {
+//        for (i in 0 until oneBarFrame) {
 //            //iのmultiplier乗を算出し最大値が1となるように調整
-//            animGradation.add(((oneBarDots.mPow(gradationMultiplier) - i.mPow(gradationMultiplier))
-//                    / oneBarDots.mPow(gradationMultiplier)).toFloat())
+//            animGradation.add(((oneBarFrame.mPow(gradationMultiplier) - i.mPow(gradationMultiplier))
+//                    / oneBarFrame.mPow(gradationMultiplier)).toFloat())
 ////            Log.i(tagMsg,"gradationArray: ${gradationArray[i]}")
 //        }
 //    }
