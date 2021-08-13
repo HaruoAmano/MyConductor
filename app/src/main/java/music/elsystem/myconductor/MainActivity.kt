@@ -1,12 +1,19 @@
 package music.elsystem.myconductor
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
@@ -15,93 +22,159 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.SoundName.*
-import music.elsystem.myconductor.Common.bitmapX
-import music.elsystem.myconductor.Common.bitmapY
-import music.elsystem.myconductor.Common.alphaMultiplier
 import music.elsystem.myconductor.Common.justTappedSw
 import music.elsystem.myconductor.Common.justTappedSoundSw
-import music.elsystem.myconductor.Common.motionYMultiplier
 import music.elsystem.myconductor.Common.offBeatNum
-import music.elsystem.myconductor.Common.radiusMultiplier
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.Tact.*
+import music.elsystem.myconductor.Common.bmpBeat
+import music.elsystem.myconductor.Common.lstSpOnbeat
+import music.elsystem.myconductor.Common.renderMode
+import music.elsystem.myconductor.Common.rhythm
+import music.elsystem.myconductor.Common.soundPool
+import music.elsystem.myconductor.Common.spOffbeatVoice
+import music.elsystem.myconductor.Common.spOffbeatVoice2
 import music.elsystem.myconductor.Common.tactType
-import music.elsystem.myconductor.GraphicValue.dotSize
+import music.elsystem.myconductor.Common.tempo
+import music.elsystem.myconductor.Common.voice
 import music.elsystem.myconductor.GraphicValue.numberBitmapList
 import music.elsystem.myconductor.databinding.ActivityMainBinding
-import music.elsystem.myconductor.gldraw.dotDraw.GlSurfaceView
-import music.elsystem.myconductor.gldraw.dotDraw.Sound
-import music.elsystem.myconductor.gldraw.lineDraw.LineSurfaceView
+import music.elsystem.myconductor.settings.HeavySettingActivity
+import music.elsystem.myconductor.settings.LightSettingActivity
+import music.elsystem.myconductor.settings.SwingSettingActivity
+import music.elsystem.myconductor.surfaceview.dotSurfaceview.GlSurfaceView
+import music.elsystem.myconductor.surfaceview.lineSureface.LineSurfaceView
+import kotlin.concurrent.timer
 import kotlin.math.ceil
 
 class MainActivity : AppCompatActivity() {
-    private val bd by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    private val ut = Util()
-    var bmpBeat: Bitmap? = null
+    private lateinit var bd: ActivityMainBinding
 
-    var rhythm = 4
-    var tempo = 60
-
-    //描画中かどうか（
+    //描画中かどうか
     var isStarted = false
+
+    //ナンバー読み込み用ビットマップリスト
     private val numberBitmapListAll: MutableList<Bitmap> = mutableListOf()
-    private var tempoLabel = ""
+
+    //サーフェスビューの定義
+    var lineSurfaceview: LineSurfaceView? = null
+    var glSurfaceview: GlSurfaceView? = null
 
     //LogicalPosArrayをLine用に使用するかどうか。（ちゃんと設計すれば、この変数はいらないはず！）
     var line = true
 
     //テンポのタップ指定に使用する。
     private val handler: Handler = Handler(Looper.getMainLooper())
-
-    //メトロノーム本体オブジェクト
-    var voice = Voice.name
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bd = ActivityMainBinding.inflate(layoutInflater)
         setContentView(bd.root)
         // "MyConductorPrefData"という名前でインスタンスを生成。書き込み先のデータ名称となる。
         val myConductorPrefData: SharedPreferences =
             getSharedPreferences("MyConductorPrefData", Context.MODE_PRIVATE)
         val editor = myConductorPrefData.edit()
-        //サーフェスビューの親ビューであるLinearLayoutを生成する。
+        val ut = Util()
+        //サーフェスビューの親ビューであるLinearLayoutより描画サイズを取得する。
         val observerSurfaceViewLayout: ViewTreeObserver = bd.layoutGlSurfaceView.viewTreeObserver
         observerSurfaceViewLayout.addOnGlobalLayoutListener {
-            Log.i(tagMsg, "---ViewTreeObserver---!")
-            Log.i(tagMsg, "Surfaceview Width: ${bd.layoutGlSurfaceView.width}")
-            Log.i(tagMsg, "Surfaceview Height: ${bd.layoutGlSurfaceView.height}")
             surfaceWidth = bd.layoutGlSurfaceView.width
             surfaceHeight = bd.layoutGlSurfaceView.height
         }
         //ヌルポを避けるため、とりあえずビットマップを設定する。
+        //元画像のサイズを保持するようオプションで指定する。
         val options = BitmapFactory.Options()
         options.inScaled = false
         bmpBeat = BitmapFactory.decodeResource(resources, R.drawable.beat_4, options)
-        bitmapX = bmpBeat?.let { it.width } ?: 0
-        bitmapY = bmpBeat?.let { it.height } ?: 0
+        //リズムに応じたナンバービットマップをセットする。
         loadBitmapNumber()
         //サウンドファイルを読み込みサウンドプールにセットする。
-//        val sound = Sound()
-//        sound.setSoundList(voice,rhythm)
-//        sound.setSoundPool(applicationContext,rhythm)
-        //タクト　ラジオボタン
-        bd.rgTact.check(bd.rbNormal.id)
-        bd.rgTact.setOnCheckedChangeListener { _, checkedId ->
-            // checkedIdから、選択されたRadioButtonを取得
-            when (checkedId) {
-                bd.rbHeavy.id -> {
-                    tactType = Heavy.name
-                }
-                bd.rbNormal.id -> {
-                    tactType = Normal.name
-                }
-                bd.rbSwing.id -> {
-                    tactType = Swing.name
-                }
+        setSoundList(voice, rhythm)
+        setSoundPool(applicationContext, rhythm)
+        //サーフェスビューの初期値としてラインを描画する。
+        //モーションの描画か、ラインの描画か、セッティングの描画かを指定する。
+        renderMode = Line.name
+        lineSurfaceview = LineSurfaceView(this)
+        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+        //タクトタイプの初期値はLight
+        bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+        bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+        //タクト****************************************************************
+        //Heavy
+        bd.btnHeavy.setOnClickListener {
+            tactType = Heavy.name
+            bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+            bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.tvTitleOffBeat.visibility = View.VISIBLE
+            bd.rgOffBeatNum.visibility = View.VISIBLE
+            if (isStarted) {
+                updateGlSurface()
             }
         }
-        //音色　ラジオボタン
+        //Heavy 詳細画面
+        bd.btnHeavy.setOnLongClickListener {
+            if (!isStarted) {
+                if (tactType == Heavy.name) {
+                    val heavySettingIntent =
+                        Intent(applicationContext, HeavySettingActivity::class.java)
+                    startActivityForResult(heavySettingIntent, 200)
+                }
+            }
+            true
+        }
+        //Light
+        bd.btnLight.setOnClickListener {
+            tactType = Light.name
+            bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.tvTitleOffBeat.visibility = View.VISIBLE
+            bd.rgOffBeatNum.visibility = View.VISIBLE
+            if (isStarted) {
+                updateGlSurface()
+            }
+        }
+        //Light詳細画面
+        bd.btnLight.setOnLongClickListener {
+            if (!isStarted) {
+                if (tactType == Light.name) {
+                    val lightSettingIntent =
+                        Intent(applicationContext, LightSettingActivity::class.java)
+                    startActivityForResult(lightSettingIntent, 200)
+                }
+            }
+            true
+        }
+
+        //Swing
+        bd.btnSwing.setOnClickListener {
+            tactType = Swing.name
+            bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+            bd.tvTitleOffBeat.visibility = View.INVISIBLE
+            bd.rgOffBeatNum.visibility = View.INVISIBLE
+            if (isStarted) {
+                updateGlSurface()
+            }
+        }
+        //Swing詳細画面
+        bd.btnSwing.setOnLongClickListener {
+            if (!isStarted) {
+                if (tactType == Swing.name) {
+                    val swingSettingIntent =
+                        Intent(applicationContext, SwingSettingActivity::class.java)
+                    startActivityForResult(swingSettingIntent, 200)
+                }
+            }
+            true
+        }
+        //サウンド　ラジオボタン*************************************************
         bd.rgSound.check(bd.rbVoice.id)
         bd.rgSound.setOnCheckedChangeListener { _, checkedId ->
             // checkedIdから、選択されたRadioButtonを取得
@@ -113,10 +186,14 @@ class MainActivity : AppCompatActivity() {
                     voice = Click.name
                 }
             }
-//            sound.setSoundList(voice,rhythm)
-//            sound.setSoundPool(applicationContext,rhythm)
+            //メトロノーム音声
+            setSoundList(voice, rhythm)
+            setSoundPool(applicationContext, rhythm)
+            if (isStarted) {
+                updateGlSurface()
+            }
         }
-        //裏拍の刻み　NONE or２ or ３
+        //裏拍の刻み　NONE or２（裏） or ３（３連） or ４（裏裏）
         bd.rgOffBeatNum.check(bd.rbNone.id)
         bd.rgOffBeatNum.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
@@ -125,22 +202,24 @@ class MainActivity : AppCompatActivity() {
                 bd.rbThree.id -> offBeatNum = 3
                 bd.rbFour.id -> offBeatNum = 4
             }
+            if (isStarted) {
+                updateGlSurface()
+            }
         }
-
-        //********* spnTempoLabelスピナーの設定（moderate,Allegro etc... )*********************
-        val tempoLabellist = listOf(
+        //********* spntempoSignスピナーの設定（moderate,Allegro etc... )*********************
+        val tempoSignlist = listOf(
             "Grave", "Largo", "Lento", "Adagio", "Adagietto", "Andante",
             "Moderate", "Allegretto", "Allegro"
         )
         val adapter1 =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, tempoLabellist).also {
+            ArrayAdapter(applicationContext, R.layout.custom_spinner, tempoSignlist).also {
                 it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             }
-        // spnTempoLabel に adapter をセット
-        bd.spnTempoLabel.adapter = adapter1
-        bd.spnTempoLabel.setSelection(4)   //初期値をAndanteとする。
+        // spntempoSign に adapter をセット
+        bd.spnTempoSign.adapter = adapter1
+        bd.spnTempoSign.setSelection(4)   //初期値をAndanteとする。
         // リスナーを登録
-        bd.spnTempoLabel.onItemSelectedListener =
+        bd.spnTempoSign.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -149,46 +228,59 @@ class MainActivity : AppCompatActivity() {
                     id: Long
                 ) {
                     val spinnerParent = parent as Spinner
-                    tempoLabel = spinnerParent.selectedItem as String
-                    bd.tvTempo.text = prepareTempo(tempoLabel).toString()
-                    tempo = prepareTempo(tempoLabel)
+                    val tempoSign = spinnerParent.selectedItem as String
+                    bd.etTempo.setText(prepareTempo(tempoSign).toString())
+                    tempo = prepareTempo(tempoSign)
                 }
 
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
-        //********* btn < *********************************************************
+        //********* btn << < > >> *********************************************************
+        //現時点では < または > により加減した場合、ut.changeTempoでGrave→Lento
+        //等の境界を超えた場合、prepareTempoが稼働し数字がポンと飛ぶ結果となっている。
+        //回避策としてoldTempoを確保し、比較（絶対値が１）の時はprepareTempoで無処理とする
+        //方策が考えられるが、地味なバグのため暇ができたときに対応する。
         bd.btnTempoMm.setOnClickListener {
             tempo = ut.changeTempo(
                 tempo - ceil(tempo / 25.0).toInt(),
-                bd.tvTempo,
-                bd.spnTempoLabel
+                bd.etTempo,
+                bd.spnTempoSign
             )
         }
         bd.btnTempoM1.setOnClickListener {
             tempo = ut.changeTempo(
                 tempo - 1,
-                bd.tvTempo,
-                bd.spnTempoLabel
+                bd.etTempo,
+                bd.spnTempoSign
             )
         }
         bd.btnTempoP1.setOnClickListener {
             tempo = ut.changeTempo(
                 tempo + 1,
-                bd.tvTempo,
-                bd.spnTempoLabel
+                bd.etTempo,
+                bd.spnTempoSign
             )
         }
         bd.btnTempoPp.setOnClickListener {
             tempo = ut.changeTempo(
                 tempo + ceil(tempo / 25.0).toInt(),
-                bd.tvTempo,
-                bd.spnTempoLabel
+                bd.etTempo,
+                bd.spnTempoSign
             )
         }
+        //*************************************************************************
+        bd.etTempo.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                if (isStarted) {
+                    updateGlSurface()
+                }
+            }
 
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+        })
         //********* Tapボタン ******************************************************
-        val tapListener = TapOnClickListener(handler, bd.tvTempo, bd.spnTempoLabel)
+        val tapListener = TapOnClickListener(handler, bd.etTempo, bd.spnTempoSign)
         bd.btnTap.setOnClickListener(tapListener)
         //********* spnRhythmスピナーの設定（2beat,4beat etc...) *********************
         val rhythmList = listOf(
@@ -202,6 +294,7 @@ class MainActivity : AppCompatActivity() {
         bd.spnBeat.setSelection(2)
         // リスナーを登録
         bd.spnBeat.onItemSelectedListener =
+                //@@@@@@@@@クラスファイル化する！！！！！！！！！！！！！！！！！！！！！！！！
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: AdapterView<*>?,
@@ -230,157 +323,123 @@ class MainActivity : AppCompatActivity() {
                                 BitmapFactory.decodeResource(resources, R.drawable.beat_4, options)
                         }
                     }
-                    bitmapX = bmpBeat?.let { it.width } ?: 0
-                    bitmapY = bmpBeat?.let { it.height } ?: 0
                     //拍子変更に関わる以下の項目を設定する。
+                    if (isStarted) {
+                        updateGlSurface()
+                    } else {
+                        bd.layoutGlSurfaceView.removeAllViews()
+                        renderMode = Line.name
+                        lineSurfaceview = LineSurfaceView(this@MainActivity)
+                        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+                    }
                     //描画に使用される数字のビットマップリスト。
                     setNumberList()
                     //メトロノーム音声
-//                    sound.setSoundList(voice,rhythm)
-//                    sound.setSoundPool(applicationContext,rhythm)
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                }
-            }
-
-        //********* spnMotionYスピナーの設定（タクトの跳ね具合) *********************
-        val motionYList = listOf(
-            0.5, 0.8, 1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 4.0, 5.0
-        )
-        // spinner に adapter をセット
-        bd.spnMotionY.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, motionYList).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-        bd.spnMotionY.setSelection(4)
-        // リスナーを登録
-        bd.spnMotionY.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val spinnerParent = parent as Spinner
-                    motionYMultiplier = spinnerParent.selectedItem as Double
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                }
-            }
-
-        //********* spnDotSizeスピナーの設定（球の大きさ) *********************
-        val dotSizeList = listOf(10f, 15f, 20f, 30f)
-        // spinner に adapter をセット
-        bd.spnDotSize.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, dotSizeList).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-        bd.spnDotSize.setSelection(1)
-        // リスナーを登録
-        bd.spnDotSize.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val spinnerParent = parent as Spinner
-                    dotSize = spinnerParent.selectedItem as Float
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                }
-            }
-
-        //********* spnRadiusスピナーの設定（ドットが大きくなる速さ) *********************
-        val radiusList = listOf(
-            3.0, 4.0, 5.0
-        )
-        // spinner に adapter をセット
-        bd.spnRadius.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, radiusList).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-        bd.spnRadius.setSelection(1)
-        // リスナーを登録
-        bd.spnRadius.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val spinnerParent = parent as Spinner
-                    radiusMultiplier = spinnerParent.selectedItem as Double
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                }
-            }
-
-        //********* spnAlphaスピナーの設定（αの減衰具合）*************
-        val alphaList = listOf(
-            1.0, 1.5, 2.0, 3.0, 4.0, 5.0
-        )
-        // spinner に adapter をセット
-        bd.spnAlpha.adapter =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, alphaList).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-        bd.spnAlpha.setSelection(4)
-        // リスナーを登録
-        bd.spnAlpha.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val spinnerParent = parent as Spinner
-                    alphaMultiplier = spinnerParent.selectedItem as Double
+                    setSoundList(voice, rhythm)
+                    setSoundPool(applicationContext, rhythm)
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {
                 }
             }
         //********* サーフェスビュークリック時の設定*****************************
-        //GlSurfaceViewの生成（addView時はテンポ変更等を反映させるため必ずSurfaceViewの更新を行う。）
-        var lineSurfaceview = LineSurfaceView(this, rhythm, bmpBeat)
-        var glSurfaceview = GlSurfaceView(this, rhythm, tempo, bmpBeat, voice, motionYMultiplier)
-        bd.layoutGlSurfaceView.addView(lineSurfaceview)
+        //addView時はテンポ変更等を反映させるため必ずSurfaceViewの更新を行う。
         bd.layoutGlSurfaceView.setOnClickListener {
             //アニメーション描画を開始する。
             if (!isStarted) {
                 //サウンドの再生はGlRendererから実行される。
-                bd.layoutGlSurfaceView.removeView(lineSurfaceview)
-                glSurfaceview = GlSurfaceView(this, rhythm, tempo, bmpBeat, voice, motionYMultiplier)
+                Log.i("@@@@", "${Motion.name}")
+                bd.layoutGlSurfaceView.removeAllViews()
+                renderMode = Motion.name
+                glSurfaceview = GlSurfaceView(this)
                 bd.layoutGlSurfaceView.addView(glSurfaceview)
                 //再生中はスリープ状態にならないように設定する。
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                isStarted = true
                 justTappedSw = true
                 justTappedSoundSw = true
-                isStarted = true
+                bd.tvViewCap.text = getString(R.string.tapToStop)
+                bd.spnTempoSign.isEnabled = false
+                bd.spnTempoSign.setBackgroundColor(Color.GRAY)
+                bd.btnTempoMm.isEnabled = false
+                bd.btnTempoMm.setBackgroundColor(Color.GRAY)
+                bd.btnTempoM1.isEnabled = false
+                bd.btnTempoM1.setBackgroundColor(Color.GRAY)
+                bd.etTempo.isEnabled = false
+                bd.etTempo.setBackgroundColor(Color.GRAY)
+                bd.btnTempoP1.isEnabled = false
+                bd.btnTempoP1.setBackgroundColor(Color.GRAY)
+                bd.btnTempoPp.isEnabled = false
+                bd.btnTempoPp.setBackgroundColor(Color.GRAY)
+                bd.spnBeat.isEnabled = false
+                bd.spnBeat.setBackgroundColor(Color.GRAY)
+                bd.btnTap.isEnabled = false
+                bd.btnTap.setBackgroundColor(Color.GRAY)
+                bd.tvTactCap.visibility = View.INVISIBLE
             } else {
                 //ライン描画のサーフェスビューを表示する。
-                bd.layoutGlSurfaceView.removeView(glSurfaceview)
-                lineSurfaceview = LineSurfaceView(this, rhythm, bmpBeat)
+                bd.layoutGlSurfaceView.removeAllViews()
+                renderMode = Line.name
+                lineSurfaceview = LineSurfaceView(this)
                 bd.layoutGlSurfaceView.addView(lineSurfaceview)
                 //メトロノームを停止する。
                 isStarted = false
+                bd.tvViewCap.text = getString(R.string.tapToStart)
+                bd.spnTempoSign.isEnabled = true
+                bd.spnTempoSign.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTempoMm.isEnabled = true
+                bd.btnTempoMm.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTempoM1.isEnabled = true
+                bd.btnTempoM1.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.etTempo.isEnabled = true
+                bd.etTempo.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTempoP1.isEnabled = true
+                bd.btnTempoP1.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTempoPp.isEnabled = true
+                bd.btnTempoPp.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.spnBeat.isEnabled = true
+                bd.spnBeat.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTap.isEnabled = true
+                bd.btnTap.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.tvTactCap.visibility = View.VISIBLE
             }
         }
     }
 
-    //********************** onCreate終了 ***********************************************
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (resultCode) {
+            Activity.RESULT_OK -> {
+                bd.etTempo.setText(tempo.toString())
+                bd.layoutGlSurfaceView.removeAllViews()
+                renderMode = Line.name
+                lineSurfaceview = LineSurfaceView(this)
+                bd.layoutGlSurfaceView.addView(lineSurfaceview)
+            }
+        }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        //システムバーの消去
+        //window.decorView.systemUiVisibilityはアンドロイド11では非推奨。
+        // WindowInsetsControllerが推奨されるが現時点ではこのままとする。
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        actionBar?.hide()
+    }
+
+    private fun updateGlSurface() {
+        bd.layoutGlSurfaceView.removeAllViews()
+        renderMode = Motion.name
+        glSurfaceview = GlSurfaceView(this)
+        bd.layoutGlSurfaceView.addView(glSurfaceview)
+        justTappedSw = true
+        justTappedSoundSw = true
+        isStarted = true
+    }
+
+    //描画に使用される数字のビットマップすべてをリスト読み込む。
     fun loadBitmapNumber() {
-        //描画に使用される数字のビットマップすべてをリスト読み込む。
         numberBitmapListAll.add(BitmapFactory.decodeResource(resources, R.drawable.number_1))
         numberBitmapListAll.add(BitmapFactory.decodeResource(resources, R.drawable.number_2))
         numberBitmapListAll.add(BitmapFactory.decodeResource(resources, R.drawable.number_3))
@@ -392,7 +451,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     //選択されたrhythmに応じて、実際に描画に使用されるビットマップリストを作成する。
-//４拍子であれば4[0],1[1],2[2],3[3]の様になる。
+    //４拍子であれば4[0],1[1],2[2],3[3]の様になる。
     fun setNumberList() {
         numberBitmapList = mutableListOf()
         var j: Int
@@ -402,62 +461,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    //音声ファイルを準備する。
-//    fun setSoundList(voice: String) {
-//        //選択されたVoiceに対する音声ファイルを読み込む。
-//        lstResIdOnbeatAll = mutableListOf()
-//        when (voice) {
-//            Voice.name -> {
-//                lstResIdOnbeatAll.add(R.raw.one)
-//                lstResIdOnbeatAll.add(R.raw.two)
-//                lstResIdOnbeatAll.add(R.raw.three)
-//                lstResIdOnbeatAll.add(R.raw.four)
-//                lstResIdOnbeatAll.add(R.raw.five)
-//                lstResIdOnbeatAll.add(R.raw.six)
-//                lstResIdOnbeatAll.add(R.raw.seven)
-//                spOffbeatVoice = R.raw.and
-//            }
-//            Click.name -> {
-//                lstResIdOnbeatAll.add(R.raw.piin)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                lstResIdOnbeatAll.add(R.raw.pon)
-//                spOffbeatVoice = R.raw.kattu
-//            }
-//        }
-//        //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
-//        //４拍子であればfour[0],one[1],two[2],three[3]の様になる。
-//        lstSpOnbeat = mutableListOf()
-//        var j: Int
-//        for (i in 0 until rhythm) {
-//            j = (((rhythm - 1) + i) % rhythm)
-//            lstSpOnbeat.add(lstResIdOnbeatAll[j])
-//        }
-//    }
-//
-//    fun setSoundPool() {
-//        SoundPool.Builder().run {
-//            val audioAttributes = AudioAttributes.Builder().run {
-//                setUsage(AudioAttributes.USAGE_MEDIA)
-//                build()
-//            }
-//            setMaxStreams(20)
-//            setAudioAttributes(audioAttributes)
-//            build()
-//        }.also { soundPool = it }
-//        //表拍
-//        for (i in 0 until rhythm) {
-//            soundPool?.load(applicationContext, lstSpOnbeat[i], 1)?.let { lstSpOnbeat[i] = it }
-//        }
-//        //裏拍
-//        soundPool?.load(applicationContext, spOffbeatVoice, 1)?.let { spOffbeatVoice = it }
-//    }
-
-    fun prepareTempo(tempoLabel: String): Int {
-        return when (tempoLabel) {
+    //テンポサイン選択時にテンポに表示する速さを選択する。
+    fun prepareTempo(tempoSign: String): Int {
+        return when (tempoSign) {
             "Grave" -> 36
             "Largo" -> 42
             "Lento" -> 50
@@ -471,7 +477,73 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //音声ファイルを準備する。
+    private fun setSoundList(voice: String, rhythm: Int) {
+        //選択されたVoiceに対する音声ファイルを読み込む。
+        val lstResIdOnbeatAll: MutableList<Int> = mutableListOf()
+        when (voice) {
+            Voice.name -> {
+                lstResIdOnbeatAll.add(R.raw.one)
+                lstResIdOnbeatAll.add(R.raw.two)
+                lstResIdOnbeatAll.add(R.raw.three)
+                lstResIdOnbeatAll.add(R.raw.four)
+                lstResIdOnbeatAll.add(R.raw.five)
+                lstResIdOnbeatAll.add(R.raw.six)
+                lstResIdOnbeatAll.add(R.raw.seven)
+                spOffbeatVoice = R.raw.and
+                spOffbeatVoice2 = R.raw.an
+            }
+            Click.name -> {
+                lstResIdOnbeatAll.add(R.raw.piin)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                lstResIdOnbeatAll.add(R.raw.pon)
+                spOffbeatVoice = R.raw.kattu
+                spOffbeatVoice2 = R.raw.chi
+            }
+        }
+        //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
+        //４拍子であればfour[0],one[1],two[2],three[3]の様になる。
+        lstSpOnbeat = mutableListOf()
+        var j: Int
+        for (i in 0 until rhythm) {
+            j = (((rhythm - 1) + i) % rhythm)
+            lstSpOnbeat.add(lstResIdOnbeatAll[j])
+        }
+    }
+
+    //setSoundListで用意されたサウンドリスト一拍目とするサウンドプールを生成する。
+    private fun setSoundPool(context: Context, rhythm: Int) {
+        SoundPool.Builder().run {
+            val audioAttributes = AudioAttributes.Builder().run {
+                setUsage(AudioAttributes.USAGE_MEDIA)
+                build()
+            }
+            setMaxStreams(10)
+            setAudioAttributes(audioAttributes)
+            build()
+        }.also { soundPool = it }
+        //表拍
+        for (i in 0 until rhythm) {
+            soundPool?.load(context, lstSpOnbeat[i], 1)?.let { lstSpOnbeat[i] = it }
+        }
+        //裏拍
+        soundPool?.load(
+            context,
+            spOffbeatVoice, 1
+        )?.let { spOffbeatVoice = it }
+        //裏裏拍
+        soundPool?.load(
+            context,
+            spOffbeatVoice2, 1
+        )?.let { spOffbeatVoice2 = it }
+    }
+
     companion object {
-        private const val tagMsg = "My_MainActivity"
+        val COLOR_BUTTON = "#194B4B"
+        val COLOR_BUTTON_PALE = "#598181"
     }
 }

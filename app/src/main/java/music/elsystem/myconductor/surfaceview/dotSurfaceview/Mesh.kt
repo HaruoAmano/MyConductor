@@ -1,4 +1,4 @@
-package music.elsystem.myconductor.gldraw.dotDraw
+package music.elsystem.myconductor.surfaceview.dotSurfaceview
 
 import android.opengl.GLES20.*
 import music.elsystem.myconductor.Common
@@ -13,18 +13,18 @@ class Mesh {
         var indexX = 1
         for (i in 0 until 36 step 4) {
             meshVertex[i] = util.coX(0)
-            meshVertex[i + 1] = util.coY(Common.bitmapY / 10 * indexX)
-            meshVertex[i + 2] = util.coX(Common.bitmapX)
-            meshVertex[i + 3] = util.coY(Common.bitmapY / 10 * indexX)
+            meshVertex[i + 1] = util.coY(Common.logeicalSpaceY / 10 * indexX)
+            meshVertex[i + 2] = util.coX(Common.logeicalSpaceX)
+            meshVertex[i + 3] = util.coY(Common.logeicalSpaceY / 10 * indexX)
             indexX++
         }
         //垂直線メッシュ
         var indexY = 1
         for (i in 36 until 72 step 4) {
-            meshVertex[i] = util.coX(Common.bitmapX /10 * indexY)
+            meshVertex[i] = util.coX(Common.logeicalSpaceX /10 * indexY)
             meshVertex[i + 1] = util.coY(0)
-            meshVertex[i + 2] = util.coX(Common.bitmapX / 10 * indexY)
-            meshVertex[i + 3] = util.coY(Common.bitmapY)
+            meshVertex[i + 2] = util.coX(Common.logeicalSpaceX / 10 * indexY)
+            meshVertex[i + 3] = util.coY(Common.logeicalSpaceY)
             indexY++
         }
         val attPositionLocation = glGetAttribLocation(mProgramId, "position")

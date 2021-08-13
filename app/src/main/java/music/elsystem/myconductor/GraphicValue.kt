@@ -3,9 +3,6 @@ package music.elsystem.myconductor
 import android.graphics.Bitmap
 
 object GraphicValue {
-    var dotSize = 0f
-
-
 
     //描画に使用される数字のビットマップリスト
     var numberBitmapList: MutableList<Bitmap> = mutableListOf()
@@ -24,6 +21,10 @@ object GraphicValue {
         "6600cc", "ff99ff",
         "660000", "cc6666"
     )
+    object OneBeat {
+        val highestPosition = listOf(50,50)
+        val lowestPosition = listOf(950,950)
+    }
     object TwoBeat {
         val highestPosition = listOf(50, 50, 66, 68)
         val lowestPosition = listOf(711, 850, 849, 711)

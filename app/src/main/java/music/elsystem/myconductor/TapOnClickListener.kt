@@ -2,12 +2,13 @@ package music.elsystem.myconductor
 
 import android.os.Handler
 import android.view.View
+import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 
 class TapOnClickListener(
     private val handler: Handler,
-    private val textView: TextView,
+    private val editText: EditText,
     private val spinner: Spinner
 ) : View.OnClickListener {
     private val ut = Util()
@@ -29,9 +30,10 @@ class TapOnClickListener(
     }
 
     override fun onClick(v: View) {
-
+        //4秒以内に再度タップされた場合にテンポとして認識する。
+        //4秒を超えた場合（または初回タップ時はrunnableを起動する）
         if (count > 0) {
-            ut.changeTempo(6000 / count, textView, spinner)
+            ut.changeTempo(6000 / count, editText, spinner)
         } else {
             handler.post(runnable)
         }

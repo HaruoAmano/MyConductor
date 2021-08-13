@@ -1,14 +1,19 @@
 package music.elsystem.myconductor
 
+import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
-import music.elsystem.myconductor.Common.bitmapX
-import music.elsystem.myconductor.Common.bitmapY
+import music.elsystem.myconductor.Common.RenderMode.*
+import music.elsystem.myconductor.Common.logeicalSpaceX
+import music.elsystem.myconductor.Common.logeicalSpaceY
 import music.elsystem.myconductor.Common.offBeatNum
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.tactType
 import music.elsystem.myconductor.Common.Tact.*
+import music.elsystem.myconductor.Common.renderMode
+import music.elsystem.myconductor.Common.settingSurfaceHeight
+import music.elsystem.myconductor.Common.settingSurfaceWidth
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -22,11 +27,23 @@ class Util() {
     //co:convert origin
 
     fun coX(x: Int): Float {
-        return (x - (bitmapX / 2f)) * (surfaceWidth / bitmapX.toFloat())
+        var width = 0
+        if (renderMode == Setting.name) {
+            width = settingSurfaceWidth
+        } else {
+            width = surfaceWidth
+        }
+        return (x - (logeicalSpaceX / 2f)) * (width / logeicalSpaceX.toFloat())
     }
 
     fun coY(y: Int): Float {
-        return ((bitmapY - 1 - y) - (bitmapY / 2f)) * (surfaceHeight / bitmapY.toFloat())
+        var height = 0
+        if (renderMode == Setting.name) {
+            height = settingSurfaceHeight
+        } else {
+            height = surfaceHeight
+        }
+        return ((logeicalSpaceY - 1 - y) - (logeicalSpaceY / 2f)) * (height / logeicalSpaceY.toFloat())
     }
 
     fun halfBeatFrame(tempo: Int): Int {
@@ -36,7 +53,7 @@ class Util() {
         //したがって半拍分の画面書き換え回数は1800/tempoとなる。
         var temporaryHalfBeat = 0f
         when (tactType) {
-            Heavy.name, Normal.name -> {
+            Heavy.name, Light.name -> {
                 //temporaryHalfBeatはケースにより上書きしていくので注意！（もっといい書き方ないか？）
                 temporaryHalfBeat = 1800f / tempo.toFloat()
                 //裏拍が３連符の場合、強制的に３の倍数に変換する。
@@ -59,7 +76,7 @@ class Util() {
     fun oneBeatFrame(tempo: Int): Int {
         var temporaryOneBeatFrame = 0
         when (tactType) {
-            Heavy.name, Normal.name -> {
+            Heavy.name, Light.name -> {
                 temporaryOneBeatFrame = halfBeatFrame(tempo) * 2
             }
             Swing.name -> {
@@ -73,19 +90,19 @@ class Util() {
         return oneBeatFrame(tempo) * rhythm
     }
 
-    fun changeTempo(newTempo: Int, textView: TextView, spinner: Spinner) :Int{
+    fun changeTempo(newTempo: Int, textView: EditText, spinner: Spinner) :Int{
         val pvTempo :Int
         when {
             newTempo < 20 -> {
-                textView.text = "20"
+                textView.setText("20")
                 pvTempo = 20
             }
             newTempo >= 144 -> {
-                textView.text = "144"
+                textView.setText("144")
                 pvTempo = 144
             }
             else -> {
-                textView.text = newTempo.toString()
+                textView.setText(newTempo.toString())
                 pvTempo = newTempo
             }
         }

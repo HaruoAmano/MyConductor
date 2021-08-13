@@ -1,13 +1,24 @@
 <resources>
     <string name="app_name">MyConductor</string>
+    <string name="app_title">My Conductor</string>
     <string name="lower">&lt;&lt;</string>
     <string name="tinyLower">&lt;</string>
     <string name="tinyHigher">&gt;</string>
     <string name="higher">&gt;&gt;</string>
-    <string name="tapToStart">Please Tap to Start..."   "\n
-    描画中の値変更は禁止</string>
+    <string name="tapToStart">Please Tap to Start..."   "</string>
     <string name="tapToStop">Please Tap to Stop..."   "</string>
     <string name="progress_bar_disc">Please wait few second…\n
             Measure the speed of your smartphone \n
             for the first time only.</string>
+    <string name="tact_title">Tact</string>
+    <string name="tact_heavy">Heavy</string>
+    <string name="tact_light">Light</string>
+    <string name="tact_swing">Swing</string>
+    <string name="tact_desc">&lt;Long tap&gt; to display more settings...</string>
+    <string name="tempo_title">Tempo</string>
+    <string name="beat_title">Beat</string>
+    <string name="Offbeat_title">Offbeat</string>
+    <string name="sound_title">Sound</string>
+    <string name="btn_back">Back</string>
+
 </resources>

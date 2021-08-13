@@ -1,7 +1,6 @@
-package music.elsystem.myconductor.gldraw.dotDraw
+package music.elsystem.myconductor.surfaceview.dotSurfaceview
 
 import android.opengl.GLES20.*
-import android.opengl.GLES32.GL_QUADS
 import android.opengl.GLUtils
 import music.elsystem.myconductor.GraphicValue
 import music.elsystem.myconductor.Util

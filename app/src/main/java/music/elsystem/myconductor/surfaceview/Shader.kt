@@ -1,4 +1,4 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.surfaceview
 
 object Shader {
     //ドット描画用シェーダ************************************************************
@@ -35,7 +35,7 @@ object Shader {
     //フラグメントシェーダ
     val lineFragmentSource = "precision mediump float;" +
             "void main() {" +
-            "  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);" +
+            "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);" +
             "}"
     //ナンバー描画用シェーダ************************************************************
     //バーテックスシェーダ

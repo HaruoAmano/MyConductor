@@ -1,7 +1,6 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.surfaceview.dotSurfaceview
 
 import android.opengl.GLES20.*
-import android.util.Log
 import music.elsystem.myconductor.Util
 import kotlin.math.cos
 import kotlin.math.sin

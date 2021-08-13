@@ -1,9 +1,18 @@
-package music.elsystem.myconductor.gldraw
+package music.elsystem.myconductor.surfaceview
 
 import android.graphics.Bitmap
 import android.util.Log
+import music.elsystem.myconductor.Common
 import music.elsystem.myconductor.Common.tactType
 import music.elsystem.myconductor.Common.Tact.*
+import music.elsystem.myconductor.Common.bmpBeat
+import music.elsystem.myconductor.Common.RenderMode.*
+import music.elsystem.myconductor.Common.motionYMultiplier
+import music.elsystem.myconductor.Common.renderMode
+import music.elsystem.myconductor.Common.rhythm
+import music.elsystem.myconductor.Common.stayingFrameRate
+import music.elsystem.myconductor.Common.tempo
+import music.elsystem.myconductor.GraphicValue.OneBeat
 import music.elsystem.myconductor.GraphicValue.TwoBeat
 import music.elsystem.myconductor.GraphicValue.ThreeBeat
 import music.elsystem.myconductor.GraphicValue.FourBeat
@@ -13,21 +22,57 @@ import music.elsystem.myconductor.Util.Companion.mPow
 import kotlin.math.cos
 
 //テンポ・拍子・モーションYをインプットとして論理的頂点座標を作成する。
-class LogicalPosArray(
-    private val lpRhythm: Int,
-    lpTempo: Int,
-    private val lpMultiplier: Double) {
-    private val ut = Util()
-    private val halfBeatFrame = ut.halfBeatFrame(lpTempo)
-    private val oneBeatFrame = ut.oneBeatFrame(lpTempo)
-    private val oneBarFrame = ut.oneBarFrame(lpRhythm,lpTempo)
+//当モジュールは以下の３つの描画で使用される。
+//①アニメーション動作時、②静止画でのライン描画時、③セッティング時
+//②③については以下の特殊性がある
+// ②テンポは20固定、motionYMultiplierは1.0f固定
+// ③リズムは1固定、X座標は500固定
+class LogicalPosList() {
+    private var halfBeatFrame = 0
+    private var oneBeatFrame = 0
+    private var oneBarFrame = 0
+    private var multiplier = 0.0
+    //セッティングでの描画時はリズムを１とするが、共用変数privateRhythmに影響を与えないようにプライベートで定義し使用する。
+    private var privateRhythm = 0
+
     //ドットのマッピング配列
     var logicalX: MutableList<Int> = mutableListOf()
     var logicalY: MutableList<Int> = mutableListOf()
+
     //打点ナンバーのマッピング配列
     var numberPosXList: MutableList<Int> = mutableListOf()
     var numberPosYList: MutableList<Int> = mutableListOf()
-    fun setDotLogicalPosList(bmpBeat: Bitmap?) : Pair<MutableList<Int>,MutableList<Int>>{
+    init {
+        setEachModeVal()
+    }
+    fun setEachModeVal() {
+        val ut = Util()
+        when (renderMode) {
+            Motion.name -> {
+                privateRhythm = rhythm
+                halfBeatFrame = ut.halfBeatFrame(tempo)
+                oneBeatFrame = ut.oneBeatFrame(tempo)
+                oneBarFrame = ut.oneBarFrame(privateRhythm, tempo)
+                multiplier = motionYMultiplier
+            }
+            Line.name -> {
+                privateRhythm = rhythm
+                halfBeatFrame = ut.halfBeatFrame(20)
+                oneBeatFrame = ut.oneBeatFrame(20)
+                oneBarFrame = ut.oneBarFrame(privateRhythm, 20)
+                multiplier = 1.0
+            }
+            Setting.name -> {
+                privateRhythm = 1
+                halfBeatFrame = ut.halfBeatFrame(tempo)
+                oneBeatFrame = ut.oneBeatFrame(tempo)
+                oneBarFrame = ut.oneBarFrame(1, tempo)
+                multiplier = motionYMultiplier
+            }
+        }
+    }
+
+    fun setDotLogicalPosList(): Pair<MutableList<Int>, MutableList<Int>> {
         //getMotionYで求めたY値を元に論理座標上のX,Yを指定されたリズム・テンポを元に算出する。
         bmpBeat?.let {
             var motionYList = getMotionY()
@@ -35,32 +80,36 @@ class LogicalPosArray(
             // 変数highestPosition, lowestPositionにコピーする。
             var highestPosition = mutableListOf<Int>()
             var lowestPosition = mutableListOf<Int>()
-            when (lpRhythm) {
-                2 -> {
-                    highestPosition = TwoBeat.highestPosition.toMutableList()
-                    lowestPosition = TwoBeat.lowestPosition.toMutableList()
+            if (renderMode == Setting.name) {
+                highestPosition = OneBeat.highestPosition.toMutableList()
+                lowestPosition = OneBeat.lowestPosition.toMutableList()
+            } else {
+                when (privateRhythm) {
+                    2 -> {
+                        highestPosition = TwoBeat.highestPosition.toMutableList()
+                        lowestPosition = TwoBeat.lowestPosition.toMutableList()
+                    }
+                    3 -> {
+                        highestPosition = ThreeBeat.highestPosition.toMutableList()
+                        lowestPosition = ThreeBeat.lowestPosition.toMutableList()
+                    }
+                    4 -> {
+                        highestPosition = FourBeat.highestPosition.toMutableList()
+                        lowestPosition = FourBeat.lowestPosition.toMutableList()
+                    }
                 }
-                3 -> {
-                    highestPosition = ThreeBeat.highestPosition.toMutableList()
-                    lowestPosition = ThreeBeat.lowestPosition.toMutableList()
-                }
-                4 -> {
-                    highestPosition = FourBeat.highestPosition.toMutableList()
-                    lowestPosition = FourBeat.lowestPosition.toMutableList()
-                }
-
             }
             //ドットのマッピング処理*********************************************
             //リストの初期化
             logicalX = mutableListOf()
             logicalY = mutableListOf()
-            //l:一小節分の配列に対するインデックス（halfbeatDots * 2 * rhythm）
+            //l:一小節分の配列に対するインデックス（halfbeatDots * 2 * privateRhythm）
             var l = 0
-            //m:１小節のラインの数（rhythm * 2）
+            //m:１小節のラインの数（privateRhythm * 2）
             //i:半拍分の配列に対するインデックス
             //k:Yに対応するXの位置
             var motionYDotPos = 0
-            for (m in 0 until lpRhythm * 2) {
+            for (m in 0 until privateRhythm * 2) {
                 val lineLength =
                     lowestPosition[m] - highestPosition[m] + 1
                 //ラインの最終ドットは次のラインの先頭とダブるため、次のラインに任す。
@@ -101,9 +150,10 @@ class LogicalPosArray(
                 }
             }
         } ?: Log.i(tagMsg, "ビットマップデータがnullです！！")
-        return Pair(logicalX,logicalY)
+        return Pair(logicalX, logicalY)
     }
-    fun setNumLogicalPosList():Pair<MutableList<Int>,MutableList<Int>>{
+
+    fun setNumLogicalPosList(): Pair<MutableList<Int>, MutableList<Int>> {
         //打点ナンバーのマッピング処理*********************************************
         numberPosXList = mutableListOf()
         numberPosYList = mutableListOf()
@@ -111,15 +161,25 @@ class LogicalPosArray(
             numberPosXList.add(logicalX[n])
             numberPosYList.add(logicalY[n])
         }
-        return Pair(numberPosXList,numberPosYList)
+        return Pair(numberPosXList, numberPosYList)
     }
 
     private fun setLogicalX(m: Int, l: Int, it: Bitmap) {
-        for (k in 0 until 1000) {
-            if ((it.getPixel(k, logicalY[l]) and 0xffffff).toString(16) == strRgb[m]) {
-                //見つかった時点で論理的頂点Xを確保する。
-                logicalX.add(k)
-                break
+        var testIdx = 0
+        if (renderMode == Setting.name) {
+            logicalX.add(500)
+        } else {
+            for (k in 0 until 1000) {
+                if ((it.getPixel(k, logicalY[l]) and 0xffffff).toString(16) == strRgb[m]) {
+                    //見つかった時点で論理的頂点Xを確保する。
+                    logicalX.add(k)
+                    break
+                }
+                testIdx++
+            }
+            //良く引っかかる箇所なのでこのログは残しておく。
+            if (testIdx == 1000){
+                Log.i("取り損ね","l:$l :${logicalY[l]}")
             }
         }
     }
@@ -136,8 +196,7 @@ class LogicalPosArray(
         )
     }
 
-
-    //テンポ、（および打点の重み）に応じ論理的にマッピングされたY値の
+//テンポ、（および打点の重み）に応じ論理的にマッピングされたY値の
 //配列を生成する。
 //論理的なYの幅は1000とする。（現在のBitmapは1000x1000であるが、直接それとは関係ない）
 //この後、ビットマップの図形に合わせ縮尺する。
@@ -149,7 +208,7 @@ class LogicalPosArray(
         when (tactType) {
             Heavy.name -> {
                 var radian = 0.0
-                val stayingFrame = (halfBeatFrame * 0.07f).toInt()
+                val stayingFrame = (halfBeatFrame * stayingFrameRate).toInt()
                 val movingFrame = halfBeatFrame - stayingFrame
                 for (i in 0 until movingFrame) {
                     radian = ((kotlin.math.PI) * i / movingFrame)
@@ -159,18 +218,22 @@ class LogicalPosArray(
                     motionYDotPosList.add(999)
                 }
             }
-            Normal.name -> {
+            Light.name -> {
                 for (i in 0..halfBeatFrame) {
                     //べき乗の基数には1からhalfBeatFrameまでを代入する。
-                    motionYDotPosList.add(((1000 - 1) *
-                            ((i).mPow(lpMultiplier) / (halfBeatFrame).mPow(lpMultiplier))).toInt())
+                    motionYDotPosList.add(
+                        ((1000 - 1) *
+                                ((i).mPow(multiplier) / (halfBeatFrame).mPow(multiplier))).toInt()
+                    )
                 }
             }
             Swing.name -> {
                 for (i in 0..halfBeatFrame) {
                     //べき乗の基数には1からhalfBeatFrameまでを代入する。
-                    motionYDotPosList.add(((1000 - 1) *
-                            ((i).mPow(0.7) / (halfBeatFrame).mPow(0.7))).toInt())
+                    motionYDotPosList.add(
+                        ((1000 - 1) *
+                                ((i).mPow(0.7) / (halfBeatFrame).mPow(0.7))).toInt()
+                    )
                 }
             }
         }
