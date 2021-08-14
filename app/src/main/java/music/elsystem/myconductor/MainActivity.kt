@@ -22,8 +22,6 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.SoundName.*
 import music.elsystem.myconductor.Common.justTappedSw
@@ -49,8 +47,6 @@ import music.elsystem.myconductor.settings.LightSettingActivity
 import music.elsystem.myconductor.settings.SwingSettingActivity
 import music.elsystem.myconductor.surfaceview.dotSurfaceview.GlSurfaceView
 import music.elsystem.myconductor.surfaceview.lineSureface.LineSurfaceView
-import kotlin.concurrent.timer
-import kotlin.math.ceil
 
 class MainActivity : AppCompatActivity() {
     private lateinit var bd: ActivityMainBinding
@@ -157,6 +153,13 @@ class MainActivity : AppCompatActivity() {
             bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
             bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
             bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+            if (bd.tvTempo.text.toString().toInt() < 40) {
+                tempo = 72
+                ut.tempoChanged(
+                    tempo,
+                    bd.tvTempo,
+                    bd.tvTempoSign)
+            }
             bd.tvTitleOffBeat.visibility = View.INVISIBLE
             bd.rgOffBeatNum.visibility = View.INVISIBLE
             if (isStarted) {
@@ -206,81 +209,69 @@ class MainActivity : AppCompatActivity() {
                 updateGlSurface()
             }
         }
-        //********* spntempoSignスピナーの設定（moderate,Allegro etc... )*********************
-        val tempoSignlist = listOf(
-            "Grave", "Largo", "Lento", "Adagio", "Adagietto", "Andante",
-            "Moderate", "Allegretto", "Allegro"
-        )
-        val adapter1 =
-            ArrayAdapter(applicationContext, R.layout.custom_spinner, tempoSignlist).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-        // spntempoSign に adapter をセット
-        bd.spnTempoSign.adapter = adapter1
-        bd.spnTempoSign.setSelection(4)   //初期値をAndanteとする。
-        // リスナーを登録
-        bd.spnTempoSign.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val spinnerParent = parent as Spinner
-                    val tempoSign = spinnerParent.selectedItem as String
-                    bd.etTempo.setText(prepareTempo(tempoSign).toString())
-                    tempo = prepareTempo(tempoSign)
+        //********* btn < >*********************************************************
+        bd.btnTempoMinus.setOnClickListener {
+            if (tactType == Swing.name) {
+                val presentIndex = swingTempoTable.indexOf(tempo)
+                if (presentIndex > 0) {
+                    tempo = swingTempoTable[presentIndex - 1]
                 }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            } else {
+                val presentIndex = tempoTable.indexOf(tempo)
+                if (presentIndex > 0) {
+                    tempo = tempoTable[presentIndex - 1]
+                }
             }
-        //********* btn << < > >> *********************************************************
-        //現時点では < または > により加減した場合、ut.changeTempoでGrave→Lento
-        //等の境界を超えた場合、prepareTempoが稼働し数字がポンと飛ぶ結果となっている。
-        //回避策としてoldTempoを確保し、比較（絶対値が１）の時はprepareTempoで無処理とする
-        //方策が考えられるが、地味なバグのため暇ができたときに対応する。
-        bd.btnTempoMm.setOnClickListener {
-            tempo = ut.changeTempo(
-                tempo - ceil(tempo / 25.0).toInt(),
-                bd.etTempo,
-                bd.spnTempoSign
+            ut.tempoChanged(
+                tempo,
+                bd.tvTempo,
+                bd.tvTempoSign
             )
         }
-        bd.btnTempoM1.setOnClickListener {
-            tempo = ut.changeTempo(
-                tempo - 1,
-                bd.etTempo,
-                bd.spnTempoSign
-            )
-        }
-        bd.btnTempoP1.setOnClickListener {
-            tempo = ut.changeTempo(
-                tempo + 1,
-                bd.etTempo,
-                bd.spnTempoSign
-            )
-        }
-        bd.btnTempoPp.setOnClickListener {
-            tempo = ut.changeTempo(
-                tempo + ceil(tempo / 25.0).toInt(),
-                bd.etTempo,
-                bd.spnTempoSign
+        bd.btnTempoPlus.setOnClickListener {
+            if (tactType == Swing.name) {
+                val presentIndex = swingTempoTable.indexOf(tempo)
+                if (presentIndex < swingTempoTable.lastIndex) {
+                    tempo = swingTempoTable[presentIndex + 1]
+                }
+            } else {
+                val presentIndex = tempoTable.indexOf(tempo)
+                if (presentIndex < tempoTable.lastIndex) {
+                    tempo = tempoTable[presentIndex + 1]
+                }
+            }
+            ut.tempoChanged(
+                tempo,
+                bd.tvTempo,
+                bd.tvTempoSign
             )
         }
         //*************************************************************************
-        bd.etTempo.addTextChangedListener(object : TextWatcher {
+        bd.tvTempo.setText(tempo.toString())
+        bd.tvTempo.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                if (isStarted) {
-                    updateGlSurface()
+                if (bd.tvTempo.text.toString().toInt() <= 40) {
+                    bd.rbFour.isEnabled = true
+                } else {
+                    if (bd.rbFour.isChecked) {
+                        bd.rgOffBeatNum.check(bd.rbTwo.id)
+                    }
+                    bd.rbFour.isEnabled = false
+                }
+                if (bd.tvTempo.text.toString().toInt() <= 60) {
+                    bd.rbThree.isEnabled = true
+                } else {
+                    if (bd.rbThree.isChecked) {
+                        bd.rgOffBeatNum.check(bd.rbNone.id)
+                    }
+                    bd.rbThree.isEnabled = false
                 }
             }
-
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
         //********* Tapボタン ******************************************************
-        val tapListener = TapOnClickListener(handler, bd.etTempo, bd.spnTempoSign)
+        val tapListener = TapOnClickListener(handler, bd.tvTempo, bd.tvTempoSign)
         bd.btnTap.setOnClickListener(tapListener)
         //********* spnRhythmスピナーの設定（2beat,4beat etc...) *********************
         val rhythmList = listOf(
@@ -359,18 +350,11 @@ class MainActivity : AppCompatActivity() {
                 justTappedSw = true
                 justTappedSoundSw = true
                 bd.tvViewCap.text = getString(R.string.tapToStop)
-                bd.spnTempoSign.isEnabled = false
-                bd.spnTempoSign.setBackgroundColor(Color.GRAY)
-                bd.btnTempoMm.isEnabled = false
-                bd.btnTempoMm.setBackgroundColor(Color.GRAY)
-                bd.btnTempoM1.isEnabled = false
-                bd.btnTempoM1.setBackgroundColor(Color.GRAY)
-                bd.etTempo.isEnabled = false
-                bd.etTempo.setBackgroundColor(Color.GRAY)
-                bd.btnTempoP1.isEnabled = false
-                bd.btnTempoP1.setBackgroundColor(Color.GRAY)
-                bd.btnTempoPp.isEnabled = false
-                bd.btnTempoPp.setBackgroundColor(Color.GRAY)
+                bd.btnTempoMinus.isEnabled = false
+                bd.btnTempoMinus.setBackgroundColor(Color.GRAY)
+                bd.tvTempo.isEnabled = false
+                bd.btnTempoPlus.isEnabled = false
+                bd.btnTempoPlus.setBackgroundColor(Color.GRAY)
                 bd.spnBeat.isEnabled = false
                 bd.spnBeat.setBackgroundColor(Color.GRAY)
                 bd.btnTap.isEnabled = false
@@ -385,18 +369,11 @@ class MainActivity : AppCompatActivity() {
                 //メトロノームを停止する。
                 isStarted = false
                 bd.tvViewCap.text = getString(R.string.tapToStart)
-                bd.spnTempoSign.isEnabled = true
-                bd.spnTempoSign.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.btnTempoMm.isEnabled = true
-                bd.btnTempoMm.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.btnTempoM1.isEnabled = true
-                bd.btnTempoM1.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.etTempo.isEnabled = true
-                bd.etTempo.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.btnTempoP1.isEnabled = true
-                bd.btnTempoP1.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.btnTempoPp.isEnabled = true
-                bd.btnTempoPp.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnTempoMinus.isEnabled = true
+                bd.btnTempoMinus.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.tvTempo.isEnabled = true
+                bd.btnTempoPlus.isEnabled = true
+                bd.btnTempoPlus.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
                 bd.spnBeat.isEnabled = true
                 bd.spnBeat.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
                 bd.btnTap.isEnabled = true
@@ -410,7 +387,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         when (resultCode) {
             Activity.RESULT_OK -> {
-                bd.etTempo.setText(tempo.toString())
+                bd.tvTempo.setText(tempo.toString())
                 bd.layoutGlSurfaceView.removeAllViews()
                 renderMode = Line.name
                 lineSurfaceview = LineSurfaceView(this)
@@ -458,22 +435,6 @@ class MainActivity : AppCompatActivity() {
         for (i in 0 until rhythm) {
             j = (((rhythm - 1) + i) % rhythm)
             numberBitmapList.add(numberBitmapListAll[j])
-        }
-    }
-
-    //テンポサイン選択時にテンポに表示する速さを選択する。
-    fun prepareTempo(tempoSign: String): Int {
-        return when (tempoSign) {
-            "Grave" -> 36
-            "Largo" -> 42
-            "Lento" -> 50
-            "Adagio" -> 56
-            "Adagietto" -> 60
-            "Andante" -> 72
-            "Moderate" -> 90
-            "Allegretto" -> 108
-            "Allegro" -> 132
-            else -> 60
         }
     }
 
@@ -543,6 +504,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        val tempoTable = listOf(
+            20, 21, 22, 23, 24, 25, 26, 28, 30, 32, 34,
+            36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 76, 80,
+            84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 126, 132, 138, 144, 152
+        )
+        val swingTempoTable = listOf(
+            40, 42, 44, 46, 48, 50, 53, 57, 60, 64, 68, 72, 76, 82, 88, 94, 102, 114, 124, 136, 152
+        )
         val COLOR_BUTTON = "#194B4B"
         val COLOR_BUTTON_PALE = "#598181"
     }

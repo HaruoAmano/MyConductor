@@ -17,10 +17,10 @@ object Common {
     var rhythm = 4
     var bmpBeat: Bitmap? = null
 
-    var tempo = 60
+    var tempo = 50
     var voice = SoundName.Voice.name
     var dotSize = 15.0f
-    var motionYMultiplier = 1.0
+    var motionYMultiplier = 2.0
     //裏拍のドットサイズ
     var offbeatDotSizeHeavy = 0.85f
     var offbeatDotSizeSwing = 1.0f

@@ -3,13 +3,13 @@ package music.elsystem.myconductor.surfaceview.dotSurfaceview
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import android.util.Log
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.Tact.*
 import music.elsystem.myconductor.Common.alphaMultiplier
 import music.elsystem.myconductor.Common.dotSize
 import music.elsystem.myconductor.Common.flashSW
 import music.elsystem.myconductor.Common.justTappedSw
+import music.elsystem.myconductor.Common.motionYMultiplier
 import music.elsystem.myconductor.Common.offbeatDotSizeHeavy
 import music.elsystem.myconductor.Common.offbeatDotSizeSwing
 import music.elsystem.myconductor.Common.perOfHalfBeatSwing
@@ -57,7 +57,7 @@ class GlRenderer() : GLSurfaceView.Renderer {
     private var frameCount = 0
 
     //ドットサイズ変化割合の係数
-    private var radiusCoefficient = 0.0
+    private var radiusRadix = 0.0
 
     //アルファ変化割合の係数
     private var dotAlpha = 0.0
@@ -182,7 +182,7 @@ class GlRenderer() : GLSurfaceView.Renderer {
         var offbeatDotSize = 0.0f
         when (tactType) {
             Heavy.name -> {
-                perOfHalfBeat = 0.7f
+                perOfHalfBeat = 0.6f
                 offbeatDotSize = offbeatDotSizeHeavy
             }
             Light.name -> {
@@ -198,6 +198,11 @@ class GlRenderer() : GLSurfaceView.Renderer {
         val lowerFrameNum = (halfBeatFrame * perOfHalfBeat).toInt()
         var l = 0
         //拍数分ループ
+        when (tactType){
+            Heavy.name -> radiusMultiplier = 3.0
+            Light.name -> radiusMultiplier = motionYMultiplier.pow(3.0)
+            Swing.name -> radiusMultiplier = 5.0
+        }
         for (i in 0 until privateRhythm) {
             //一拍のフレーム分ループ
             for (k in 0 until oneBeatFrame) {
@@ -206,27 +211,25 @@ class GlRenderer() : GLSurfaceView.Renderer {
                     //表から裏へのライン
                     if (k % halfBeatFrame < lowerFrameNum) {
                         //下半分のドットに対する処理
-                        radiusCoefficient =
+                        radiusRadix =
                             (halfBeatFrame - (k % halfBeatFrame)).radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 下半分radiusCoefficient: $radiusCoefficient")
                     } else {
                         //上半分のドットに対する処理
-                        radiusCoefficient =
-                            ((k % halfBeatFrame) * offbeatDotSize).toInt()
-                                .radiusPow() / halfBeatFrame.radiusPow()
+                        radiusRadix =
+                            ((k % halfBeatFrame) * offbeatDotSize).toInt().radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
                     }
                 } else {
                     //裏から表へのライン
                     if (k % halfBeatFrame < (halfBeatFrame - lowerFrameNum)) {
                         //上半分のドットに対する処理
-                        radiusCoefficient =
-                            ((halfBeatFrame - (k % halfBeatFrame)) * offbeatDotSize).toInt()
-                                .radiusPow() / halfBeatFrame.radiusPow()
+                        radiusRadix =
+                            ((halfBeatFrame - (k % halfBeatFrame)) * offbeatDotSize).toInt().radiusPow().div( halfBeatFrame.radiusPow())
 //                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
                     } else {
                         //下半分のドットに対する処理
-                        radiusCoefficient =
+                        radiusRadix =
                             (k % halfBeatFrame).radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 下半分radiusCoefficient: $radiusCoefficient")
                     }
@@ -239,7 +242,7 @@ class GlRenderer() : GLSurfaceView.Renderer {
                     logicalX[l],
                     logicalY[l],
                     32,
-                    (radiusCoefficient * dotSize).toFloat() + 3.0f,
+                    (radiusRadix * dotSize).toFloat() + 3.0f,
                     1f, 1f, 1f, dotAlpha.toFloat()
                 )
 //                Log.i("GlRenderer","logicalX:${logicalX.size}:${logicalX}")
@@ -259,18 +262,18 @@ class GlRenderer() : GLSurfaceView.Renderer {
             when (tactType) {
                 Heavy.name -> {
                     //Heavyの時は、打点の前からナンバーの表示が始まる。
-                    numAlpha = if ((frameCount / halfBeatFrame) % 2 == 0) {
+                    numAlpha = if ((frameCount.div(halfBeatFrame)) % 2 == 0) {
                         //裏へ向かう拍
-                        1f - ((frameCount % halfBeatFrame) / halfBeatFrame.toFloat()).pow(2.0f)
+                        1f - ((frameCount % halfBeatFrame).div(halfBeatFrame.toFloat()).pow(2.0f))
                     } else {
                         //表へ向かう拍
-                        ((frameCount % halfBeatFrame) / halfBeatFrame.toFloat()).pow(2.0f)
+                        ((frameCount % halfBeatFrame).div(halfBeatFrame.toFloat()).pow(2.0f))
                     }
-                    numberId = ((frameCount + halfBeatFrame) / oneBeatFrame) % privateRhythm
+                    numberId = ((frameCount + halfBeatFrame).div(oneBeatFrame)) % privateRhythm
                 }
                 Light.name, Swing.name -> {
-                    numAlpha = 1f - ((frameCount % oneBeatFrame) / oneBeatFrame.toFloat()).pow(5.0f)
-                    numberId = frameCount / oneBeatFrame
+                    numAlpha = 1f - ((frameCount % oneBeatFrame).div(oneBeatFrame.toFloat()).pow(5.0f))
+                    numberId = frameCount.div(oneBeatFrame)
                 }
             }
             //最初のタイミングで最終拍のナンバーが表示されるのを回避する。
@@ -293,24 +296,24 @@ class GlRenderer() : GLSurfaceView.Renderer {
                 when (tactType) {
                     Heavy.name -> {
                         //Heavyの時は、打点の前からナンバーの表示が始まる。
-                        if ((frameCount / halfBeatFrame) in 1..2) {
-                            backFlash = if ((frameCount / halfBeatFrame) % 2 == 0) {
+                        if ((frameCount.div(halfBeatFrame)) in 1..2) {
+                            backFlash = if ((frameCount.div(halfBeatFrame)) % 2 == 0) {
                                 //裏へ向かう拍
-                                1f - (frameCount % halfBeatFrame) / halfBeatFrame.toFloat()
+                                1f - (frameCount % halfBeatFrame).div(halfBeatFrame.toFloat())
                             } else {
                                 //表へ向かう拍
-                                (frameCount % halfBeatFrame) / halfBeatFrame.toFloat()
+                                (frameCount % halfBeatFrame).div(halfBeatFrame.toFloat())
                             }
                         }
                     }
                     Light.name -> {
-                        if ((frameCount / halfBeatFrame) == 2) {
-                            backFlash = 1f - (frameCount % halfBeatFrame) / halfBeatFrame.toFloat()
+                        if ((frameCount.div(halfBeatFrame)) == 2) {
+                            backFlash = 1f - (frameCount % halfBeatFrame).div(halfBeatFrame.toFloat())
                         }
                     }
                     Swing.name -> {
-                        if ((frameCount / (oneBeatFrame / 2)) == 2) {
-                            backFlash = 1f - (frameCount % oneBeatFrame) / oneBeatFrame.toFloat()
+                        if ((frameCount.div((oneBeatFrame.div(2)))) == 2) {
+                            backFlash = 1f - (frameCount % oneBeatFrame).div(oneBeatFrame.toFloat())
                         }
                     }
                 }

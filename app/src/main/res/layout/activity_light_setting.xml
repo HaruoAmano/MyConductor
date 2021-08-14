@@ -280,7 +280,7 @@
 
     <TextView
         style="@style/ItemTitle"
-        android:id="@+id/tv_tempo"
+        android:id="@+id/tv_disp_tempo"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:text="0"

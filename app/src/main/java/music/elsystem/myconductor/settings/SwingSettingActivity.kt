@@ -111,7 +111,7 @@ class SwingSettingActivity : AppCompatActivity() {
         bd.sbTempo.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                bd.tvTempo.setText(progress.toString())
+                bd.tvDispTempo.setText(progress.toString())
                 tempo = progress
             }
 
@@ -122,7 +122,7 @@ class SwingSettingActivity : AppCompatActivity() {
             }
         })
         //テンポ・テキストビューにtempoを設定
-        bd.tvTempo.text = tempo.toString()
+        bd.tvDispTempo.text = tempo.toString()
         //サウンド・ボリューム***********************************************
         //表拍
         //プログレス設定

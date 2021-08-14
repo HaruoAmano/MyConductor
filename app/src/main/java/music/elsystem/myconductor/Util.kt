@@ -1,7 +1,5 @@
 package music.elsystem.myconductor
 
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.logeicalSpaceX
@@ -37,13 +35,14 @@ class Util() {
     }
 
     fun coY(y: Int): Float {
+        val margin = 50f
         var height = 0
         if (renderMode == Setting.name) {
             height = settingSurfaceHeight
         } else {
             height = surfaceHeight
         }
-        return ((logeicalSpaceY - 1 - y) - (logeicalSpaceY / 2f)) * (height / logeicalSpaceY.toFloat())
+        return ((logeicalSpaceY - 1 - y) - (logeicalSpaceY / 2f)) * (height / logeicalSpaceY.toFloat()) - margin
     }
 
     fun halfBeatFrame(tempo: Int): Int {
@@ -73,6 +72,7 @@ class Util() {
         }
         return temporaryHalfBeat.toInt()
     }
+
     fun oneBeatFrame(tempo: Int): Int {
         var temporaryOneBeatFrame = 0
         when (tactType) {
@@ -86,38 +86,23 @@ class Util() {
         return temporaryOneBeatFrame
     }
 
-    fun oneBarFrame(rhythm: Int,tempo: Int): Int {
+    fun oneBarFrame(rhythm: Int, tempo: Int): Int {
         return oneBeatFrame(tempo) * rhythm
     }
 
-    fun changeTempo(newTempo: Int, textView: EditText, spinner: Spinner) :Int{
-        val pvTempo :Int
-        when {
-            newTempo < 20 -> {
-                textView.setText("20")
-                pvTempo = 20
-            }
-            newTempo >= 144 -> {
-                textView.setText("144")
-                pvTempo = 144
-            }
-            else -> {
-                textView.setText(newTempo.toString())
-                pvTempo = newTempo
-            }
+    fun tempoChanged(newTempo: Int, tempoText: TextView, tempoSignText: TextView) {
+        tempoText.setText(newTempo.toString())
+        when (newTempo) {
+            in 20..42 -> tempoSignText.text = "Grave"
+            in 43..49 -> tempoSignText.text = "Largo"
+            in 50..53 -> tempoSignText.text = "Lento"
+            in 54..59 -> tempoSignText.text = "Adagio"
+            in 60..67 -> tempoSignText.text = "Adagietto"
+            in 68..83 -> tempoSignText.text = "Andante"
+            in 84..95 -> tempoSignText.text = "Moderate"
+            in 96..119 -> tempoSignText.text = "Allegretto"
+            in 120..152 -> tempoSignText.text = "Allegro"
         }
-        when (pvTempo) {
-            in 25..42 -> spinner.setSelection(0) //"Grave"
-            in 43..49 -> spinner.setSelection(1) //"Largo"
-            in 50..53 -> spinner.setSelection(2) //"Lento"
-            in 54..59 -> spinner.setSelection(3) //"Adagio"
-            in 60..67 -> spinner.setSelection(4) //"Adagietto"
-            in 68..83 -> spinner.setSelection(5) //"Andante"
-            in 84..95 -> spinner.setSelection(6) //"Moderate"
-            in 96..119 -> spinner.setSelection(7) //"Allegretto"
-            in 120..144 -> spinner.setSelection(8) //"Allegro"
-        }
-        return pvTempo
     }
 
     //コーディングしたプリミティブ型を GPU に転送するためにバッファ型に

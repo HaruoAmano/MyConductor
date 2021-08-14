@@ -2,14 +2,17 @@ package music.elsystem.myconductor
 
 import android.os.Handler
 import android.view.View
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
+import music.elsystem.myconductor.Common.Tact.*
+import music.elsystem.myconductor.Common.tactType
+import music.elsystem.myconductor.Common.tempo
+import music.elsystem.myconductor.MainActivity.Companion.swingTempoTable
+import music.elsystem.myconductor.MainActivity.Companion.tempoTable
 
 class TapOnClickListener(
     private val handler: Handler,
-    private val editText: EditText,
-    private val spinner: Spinner
+    private val tempoText: TextView,
+    private val tempoSignText: TextView
 ) : View.OnClickListener {
     private val ut = Util()
     private var count = 0
@@ -33,7 +36,16 @@ class TapOnClickListener(
         //4秒以内に再度タップされた場合にテンポとして認識する。
         //4秒を超えた場合（または初回タップ時はrunnableを起動する）
         if (count > 0) {
-            ut.changeTempo(6000 / count, editText, spinner)
+            val temporaryTempo = 6000 / count
+            //タップで取得したテンポ以下で一番近い値をtempoTableからセットする。
+            if (tactType == Swing.name) {
+                val temporaryList:List<Int> = swingTempoTable.takeWhile { it <= temporaryTempo }
+                tempo = temporaryList.maxOrNull().let { it } ?: 40
+            } else {
+                val temporaryList:List<Int> = tempoTable.takeWhile { it <= temporaryTempo }
+                tempo = temporaryList.maxOrNull().let { it } ?: 20
+            }
+            ut.tempoChanged(tempo, tempoText, tempoSignText)
         } else {
             handler.post(runnable)
         }

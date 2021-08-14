@@ -33,42 +33,42 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.67" />
+        app:layout_constraintGuide_percent="0.68" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.7" />
+        app:layout_constraintGuide_percent="0.72" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline2_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.75" />
+        app:layout_constraintGuide_percent="0.78" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.82" />
+        app:layout_constraintGuide_percent="0.78" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.88" />
+        app:layout_constraintGuide_percent="0.85" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.93" />
+        app:layout_constraintGuide_percent="0.9" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_h_uiline6"
@@ -119,13 +119,25 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.96" />
 
-    <TextView
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/layoutGlSurfaceView"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/screen_back"
-        app:layout_constraintBottom_toBottomOf="@id/guideline_h_surfaceiew_top"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@id/guideline_h_surfaceiew_bottom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"></LinearLayout>
 
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/ui_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guideline_h_surfaceiew_bottom"></FrameLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -137,27 +149,6 @@
         app:layout_constraintBottom_toBottomOf="@id/guideline_h_surfaceiew_top"
         app:layout_constraintStart_toStartOf="@id/guidelineV1"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/layoutGlSurfaceView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/screen_back"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@id/guideline_h_surfaceiew_bottom"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_h_surfaceiew_top"></LinearLayout>
-
-    <FrameLayout
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/ui_back"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_h_surfaceiew_bottom"></FrameLayout>
-
     <TextView
         android:id="@+id/tv_view_cap"
         style="@style/caption"
@@ -221,108 +212,79 @@
         app:layout_constraintStart_toStartOf="@id/guidelineV1"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2" />
 
-    <Spinner
-        android:id="@+id/spn_tempo_sign"
-        style="@style/spinner"
-        android:layout_width="100dp"
-        android:layout_height="30dp"
-        android:background="@color/button"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
-        app:layout_constraintStart_toStartOf="@id/guidelineV2"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2" />
-
-
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_tempo_mm"
+        android:id="@+id/btn_tempo_minus"
         style="@style/Material.RadiusButton"
         android:layout_width="40dp"
         android:layout_height="0dp"
-        android:insetTop="10dp"
-        android:insetBottom="10dp"
+        android:insetTop="5dp"
+        android:insetBottom="5dp"
         android:padding="0dp"
-        android:text="@string/lower"
-        app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline3"
-        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_m1"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="@+id/guidelineV2"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2_2" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_tempo_m1"
-        style="@style/Material.RadiusButton"
-        android:layout_width="40dp"
-        android:layout_height="0dp"
-        android:insetTop="10dp"
-        android:insetBottom="10dp"
-        android:padding="0dp"
+        android:layout_marginLeft="10dp"
         android:text="@string/tinyLower"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintEnd_toStartOf="@+id/et_tempo"
-        app:layout_constraintStart_toEndOf="@+id/btn_tempo_mm"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2_2"
-        app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline3"
+        app:layout_constraintEnd_toStartOf="@+id/tv_tempo"
+        app:layout_constraintStart_toStartOf="@id/guidelineV2"
+        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
         />
 
-    <EditText
-        android:id="@+id/et_tempo"
+    <TextView
+        android:id="@+id/tv_tempo"
         style="@style/ItemTitle"
         android:layout_width="60dp"
         android:layout_height="0dp"
-        android:background="@color/button"
         android:gravity="center"
-        android:text="60"
-        android:enabled="false"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:textColor="@color/white"
+        android:text="50"
+        android:textSize="20sp"
+        android:padding="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        android:textColor="@color/black"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_p1"
-        app:layout_constraintStart_toEndOf="@id/btn_tempo_m1"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2_2"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline3"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_plus"
+        app:layout_constraintStart_toEndOf="@id/btn_tempo_minus"
+        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
         />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_tempo_p1"
+        android:id="@+id/btn_tempo_plus"
         style="@style/Material.RadiusButton"
         android:layout_width="40dp"
         android:layout_height="0dp"
-        android:insetTop="10dp"
-        android:insetBottom="10dp"
+        android:insetTop="5dp"
+        android:insetBottom="5dp"
         android:padding="0dp"
         android:text="@string/tinyHigher"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintEnd_toStartOf="@+id/btn_tempo_pp"
-        app:layout_constraintStart_toEndOf="@id/et_tempo"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2_2"
-        app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline3"
+        app:layout_constraintEnd_toStartOf="@+id/tv_tempo_sign"
+        app:layout_constraintStart_toEndOf="@id/tv_tempo"
+        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
         />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_tempo_pp"
-        style="@style/Material.RadiusButton"
-        android:layout_width="40dp"
-        android:layout_height="0dp"
-        android:insetTop="10dp"
-        android:insetBottom="10dp"
-        android:padding="0dp"
-        android:text="@string/higher"
+    <TextView
+        android:id="@+id/tv_tempo_sign"
+        style="@style/ItemTitle"
+        android:layout_width="80dp"
+        android:layout_height="30dp"
+        android:text="Lento"
+        android:gravity="center"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintEnd_toStartOf="@+id/btnTap"
-        app:layout_constraintStart_toEndOf="@id/btn_tempo_p1"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2_2"
-        app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline3"
+        app:layout_constraintEnd_toStartOf="@id/btnTap"
+        app:layout_constraintStart_toEndOf="@id/btn_tempo_plus"
+        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
         />
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnTap"
-        android:layout_width="40dp"
+        android:layout_width="60dp"
         android:layout_height="0dp"
-        android:insetTop="10dp"
-        android:insetBottom="10dp"
+        android:insetTop="5dp"
+        android:insetBottom="5dp"
         android:padding="0dp"
         app:icon="@drawable/ic_baseline_touch_app_24"
         android:text="Tap"
@@ -330,11 +292,13 @@
         android:fontFamily="@font/playfair"
         app:backgroundTint="@color/button"
         app:cornerRadius="10dp"
-        app:iconGravity="top"
+        app:iconGravity="textStart"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintEnd_toEndOf="@id/guidelineV6"
-        app:layout_constraintStart_toEndOf="@id/btn_tempo_pp"
+        app:layout_constraintStart_toEndOf="@id/tv_tempo_sign"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline2"
-        app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline3"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline2_2"
         />
 
     <TextView
@@ -390,17 +354,17 @@
             android:id="@+id/rb_voice"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="Voice"
-            android:textSize="10sp" />
+            android:textSize="13sp" />
 
         <RadioButton
             android:id="@+id/rb_click"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="Tick"
-            android:textSize="10sp" />
+            android:textSize="13sp" />
     </RadioGroup>
 
     <TextView
@@ -427,25 +391,25 @@
             android:id="@+id/rb_none"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="0"
-            android:textSize="10sp" />
+            android:textSize="13sp" />
 
         <RadioButton
             android:id="@+id/rb_two"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="1"
-            android:textSize="10sp" />
+            android:textSize="13sp" />
 
         <RadioButton
             android:id="@+id/rb_three"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="2"
-            android:textSize="10sp" />
+            android:textSize="13sp" />
 
         <RadioButton
             android:id="@+id/rb_four"
@@ -453,7 +417,8 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/secondary"
             android:text="3"
-            android:textSize="10sp" />
+            android:textSize="13sp"
+            android:enabled="false"/>
     </RadioGroup>
 
 
