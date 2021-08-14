@@ -1,5 +1,6 @@
 package music.elsystem.myconductor.surfaceview.dotSurfaceview
 
+import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
@@ -95,7 +96,7 @@ class GlRenderer() : GLSurfaceView.Renderer {
             numberPosYList = lpNumResult.second
         }
         //画面クリア時の色の設定。（０～1を指定する。）
-        glClearColor(0.1f, 0.3f, 0.3f, 1.0f)
+        GLES20.glClearColor(0.07f, 0.2f, 0.18f, 1.0f)
         //ドットプログラムオブジェクトの準備************************************
         val dotVertexShader = glCreateShader(GL_VERTEX_SHADER)
         glShaderSource(dotVertexShader, dotVertexSource)

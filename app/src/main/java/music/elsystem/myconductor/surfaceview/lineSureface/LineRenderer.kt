@@ -28,7 +28,7 @@ class LineRenderer() : GLSurfaceView.Renderer {
         logicalX = lpResult.first
         logicalY = lpResult.second
         //画面クリア時の色の設定。（０～1を指定する。）
-        GLES20.glClearColor(0.1f, 0.3f, 0.3f, 1.0f)
+        GLES20.glClearColor(0.07f, 0.2f, 0.18f, 1.0f)
         //バーテックスシェーダーのコンパイル
         val vertexShader = GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
         //sVertexShaderSourceは下のほうでコンパニオンオブジェクトとして定義されている。

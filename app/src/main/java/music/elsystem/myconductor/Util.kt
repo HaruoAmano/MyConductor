@@ -35,12 +35,14 @@ class Util() {
     }
 
     fun coY(y: Int): Float {
-        val margin = 50f
+        var margin = 0f
         var height = 0
         if (renderMode == Setting.name) {
             height = settingSurfaceHeight
+            margin = 0f
         } else {
             height = surfaceHeight
+            margin = 0f
         }
         return ((logeicalSpaceY - 1 - y) - (logeicalSpaceY / 2f)) * (height / logeicalSpaceY.toFloat()) - margin
     }

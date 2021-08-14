@@ -125,36 +125,14 @@
         app:layout_constraintStart_toStartOf="@+id/guideline_v2"
         app:layout_constraintTop_toTopOf="@+id/guideline_h1_2" />
     <TextView
-        android:id="@+id/tv_tact_bounce"
-        style="@style/ItemTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tact Bounce"
-        app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h1_2" />
-    <FrameLayout
-        android:id="@+id/fl_tact_bounce"
-        android:layout_width="0dp"
-        android:layout_height="30dp"
-        app:layout_constraintEnd_toStartOf="@+id/guideline_v1_3"
-        app:layout_constraintStart_toStartOf="@+id/guideline_v1_1"
-        app:layout_constraintTop_toBottomOf="@+id/tv_tact_bounce">
-        <SeekBar
-            android:id="@+id/sb_tact_bounce"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:min="0"
-            android:max="10"
-            />
-    </FrameLayout>
-    <TextView
         android:id="@+id/tv_offbeat_dot_size"
         style="@style/ItemTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="OffBeat Dot Size"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toBottomOf="@+id/fl_tact_bounce" />
+        app:layout_constraintTop_toTopOf="@+id/guideline_h1_2"
+        />
     <FrameLayout
         android:id="@+id/fl_offbeat_dot_size"
         android:layout_width="0dp"
@@ -167,33 +145,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="90"
-            android:max="120"
+            android:max="105"
             />
     </FrameLayout>
     <TextView
+        android:id="@+id/tv_on_beat_dot_size"
         style="@style/ItemTitle"
-        android:id="@+id/tv_dot_size"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Dot Size"
+        android:text="OnBeat Dot Size"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toBottomOf="@+id/fl_offbeat_dot_size" />
+        app:layout_constraintTop_toBottomOf="@+id/fl_offbeat_dot_size"
+        />
     <FrameLayout
-        android:id="@+id/fl_dot_size"
+        android:id="@+id/fl_on_beat_dot_size"
         android:layout_width="0dp"
         android:layout_height="30dp"
         app:layout_constraintEnd_toStartOf="@+id/guideline_v1_3"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1_1"
-        app:layout_constraintTop_toBottomOf="@+id/tv_dot_size">
+        app:layout_constraintTop_toBottomOf="@+id/tv_on_beat_dot_size">
         <SeekBar
-            android:id="@+id/sb_dot_size"
+            android:id="@+id/sb_on_beat_dot_size"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:min="10"
-            android:progress="20"
-            android:max="30"
+            android:min="0"
+            android:max="40"
             />
     </FrameLayout>
+
     <TextView
         style="@style/ItemTitle"
         android:id="@+id/sound"
@@ -202,7 +181,7 @@
         android:text="Sound Volume"
         android:layout_marginTop="20dp"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toBottomOf="@+id/fl_dot_size" />
+        app:layout_constraintTop_toBottomOf="@+id/fl_on_beat_dot_size" />
     <TextView
         style="@style/ItemSubTitle"
         android:id="@+id/tv_down_beat_volume"
@@ -248,7 +227,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="0"
-            android:progress="7"
             android:max="10"
             />
     </FrameLayout>
@@ -272,7 +250,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="20"
-            android:progress="60"
             android:max="120"
             />
     </FrameLayout>

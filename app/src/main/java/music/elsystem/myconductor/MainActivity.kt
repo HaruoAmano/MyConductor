@@ -34,6 +34,7 @@ import music.elsystem.myconductor.Common.bmpBeat
 import music.elsystem.myconductor.Common.lstSpOnbeat
 import music.elsystem.myconductor.Common.renderMode
 import music.elsystem.myconductor.Common.rhythm
+import music.elsystem.myconductor.Common.rhythmVariation
 import music.elsystem.myconductor.Common.soundPool
 import music.elsystem.myconductor.Common.spOffbeatVoice
 import music.elsystem.myconductor.Common.spOffbeatVoice2
@@ -115,11 +116,15 @@ class MainActivity : AppCompatActivity() {
         //Heavy 詳細画面
         bd.btnHeavy.setOnLongClickListener {
             if (!isStarted) {
-                if (tactType == Heavy.name) {
-                    val heavySettingIntent =
-                        Intent(applicationContext, HeavySettingActivity::class.java)
-                    startActivityForResult(heavySettingIntent, 200)
-                }
+                tactType = Heavy.name
+                bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.tvTitleOffBeat.visibility = View.VISIBLE
+                bd.rgOffBeatNum.visibility = View.VISIBLE
+                val heavySettingIntent =
+                    Intent(applicationContext, HeavySettingActivity::class.java)
+                startActivityForResult(heavySettingIntent, 200)
             }
             true
         }
@@ -138,11 +143,15 @@ class MainActivity : AppCompatActivity() {
         //Light詳細画面
         bd.btnLight.setOnLongClickListener {
             if (!isStarted) {
-                if (tactType == Light.name) {
-                    val lightSettingIntent =
-                        Intent(applicationContext, LightSettingActivity::class.java)
-                    startActivityForResult(lightSettingIntent, 200)
-                }
+                tactType = Light.name
+                bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.tvTitleOffBeat.visibility = View.VISIBLE
+                bd.rgOffBeatNum.visibility = View.VISIBLE
+                val lightSettingIntent =
+                    Intent(applicationContext, LightSettingActivity::class.java)
+                startActivityForResult(lightSettingIntent, 200)
             }
             true
         }
@@ -158,7 +167,8 @@ class MainActivity : AppCompatActivity() {
                 ut.tempoChanged(
                     tempo,
                     bd.tvTempo,
-                    bd.tvTempoSign)
+                    bd.tvTempoSign
+                )
             }
             bd.tvTitleOffBeat.visibility = View.INVISIBLE
             bd.rgOffBeatNum.visibility = View.INVISIBLE
@@ -169,11 +179,23 @@ class MainActivity : AppCompatActivity() {
         //Swing詳細画面
         bd.btnSwing.setOnLongClickListener {
             if (!isStarted) {
-                if (tactType == Swing.name) {
-                    val swingSettingIntent =
-                        Intent(applicationContext, SwingSettingActivity::class.java)
-                    startActivityForResult(swingSettingIntent, 200)
+                tactType = Swing.name
+                bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
+                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
+                if (bd.tvTempo.text.toString().toInt() < 40) {
+                    tempo = 72
+                    ut.tempoChanged(
+                        tempo,
+                        bd.tvTempo,
+                        bd.tvTempoSign
+                    )
                 }
+                bd.tvTitleOffBeat.visibility = View.INVISIBLE
+                bd.rgOffBeatNum.visibility = View.INVISIBLE
+                val swingSettingIntent =
+                    Intent(applicationContext, SwingSettingActivity::class.java)
+                startActivityForResult(swingSettingIntent, 200)
             }
             true
         }
@@ -267,6 +289,7 @@ class MainActivity : AppCompatActivity() {
                     bd.rbThree.isEnabled = false
                 }
             }
+
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         })
@@ -275,7 +298,7 @@ class MainActivity : AppCompatActivity() {
         bd.btnTap.setOnClickListener(tapListener)
         //********* spnRhythmスピナーの設定（2beat,4beat etc...) *********************
         val rhythmList = listOf(
-            "2 beat", "3 beat", "4 beat"
+            "2beat", "3beat", "4beat", "5beat(2+3)", "5beat(3+2)", "6beat"
         )
         // spinner に adapter をセット
         bd.spnBeat.adapter =
@@ -297,21 +320,50 @@ class MainActivity : AppCompatActivity() {
                     options.inScaled = false
                     val spinnerParent = parent as Spinner
                     when (spinnerParent.selectedItem as String) {
-                        "2 beat" -> {
+                        "2beat" -> {
                             rhythm = 2
+                            rhythmVariation = 0
                             bmpBeat =
                                 BitmapFactory.decodeResource(resources, R.drawable.beat_2, options)
 
                         }
-                        "3 beat" -> {
+                        "3beat" -> {
                             rhythm = 3
+                            rhythmVariation = 0
                             bmpBeat =
                                 BitmapFactory.decodeResource(resources, R.drawable.beat_3, options)
                         }
-                        "4 beat" -> {
+                        "4beat" -> {
                             rhythm = 4
+                            rhythmVariation = 0
                             bmpBeat =
                                 BitmapFactory.decodeResource(resources, R.drawable.beat_4, options)
+                        }
+                        "5beat(2+3)" -> {
+                            rhythm = 5
+                            rhythmVariation = 0
+                            bmpBeat =
+                                BitmapFactory.decodeResource(
+                                    resources,
+                                    R.drawable.beat_5_2_3,
+                                    options
+                                )
+                        }
+                        "5beat(3+2)" -> {
+                            rhythm = 5
+                            rhythmVariation = 1
+                            bmpBeat =
+                                BitmapFactory.decodeResource(
+                                    resources,
+                                    R.drawable.beat_5_3_2,
+                                    options
+                                )
+                        }
+                        "6beat" -> {
+                            rhythm = 6
+                            rhythmVariation = 0
+                            bmpBeat =
+                                BitmapFactory.decodeResource(resources, R.drawable.beat_6, options)
                         }
                     }
                     //拍子変更に関わる以下の項目を設定する。
@@ -483,7 +535,7 @@ class MainActivity : AppCompatActivity() {
                 setUsage(AudioAttributes.USAGE_MEDIA)
                 build()
             }
-            setMaxStreams(10)
+            setMaxStreams(20)
             setAudioAttributes(audioAttributes)
             build()
         }.also { soundPool = it }
@@ -513,6 +565,6 @@ class MainActivity : AppCompatActivity() {
             40, 42, 44, 46, 48, 50, 53, 57, 60, 64, 68, 72, 76, 82, 88, 94, 102, 114, 124, 136, 152
         )
         val COLOR_BUTTON = "#194B4B"
-        val COLOR_BUTTON_PALE = "#598181"
+        val COLOR_BUTTON_PALE = "#5B7171"
     }
 }

@@ -128,7 +128,8 @@
         app:layout_constraintBottom_toBottomOf="@id/guideline_h_surfaceiew_bottom"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></LinearLayout>
+        app:layout_constraintTop_toTopOf="parent">
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="0dp"
@@ -356,7 +357,7 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/button"
             android:text="Voice"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rb_click"
@@ -364,7 +365,7 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/button"
             android:text="Tick"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
     </RadioGroup>
 
     <TextView
@@ -393,7 +394,7 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/button"
             android:text="0"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rb_two"
@@ -401,7 +402,7 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/button"
             android:text="1"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rb_three"
@@ -409,15 +410,15 @@
             android:layout_height="match_parent"
             android:buttonTint="@color/button"
             android:text="2"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rb_four"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:buttonTint="@color/secondary"
+            android:buttonTint="@color/button"
             android:text="3"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:enabled="false"/>
     </RadioGroup>
 

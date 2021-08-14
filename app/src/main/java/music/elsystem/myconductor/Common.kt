@@ -13,8 +13,9 @@ object Common {
     //論理的座標空間のXY軸
     var logeicalSpaceX = 1000
     var logeicalSpaceY = 1000
-    //メインとセッティングで共有する項目
+    //アプリ全体で共有する項目
     var rhythm = 4
+    var rhythmVariation = 0
     var bmpBeat: Bitmap? = null
 
     var tempo = 50
@@ -23,7 +24,7 @@ object Common {
     var motionYMultiplier = 2.0
     //裏拍のドットサイズ
     var offbeatDotSizeHeavy = 0.85f
-    var offbeatDotSizeSwing = 1.0f
+    var offbeatDotSizeSwing = 0.95f
     //タクト＝Heavyの時の打点での滞留する度合
     var stayingFrameRate = 0.07f
     //タクト＝Swingの時のドットサイズの打点からの折り返し地点を管理
@@ -52,9 +53,17 @@ object Common {
     //サウンドの裏拍数
     var offBeatNum = 1
     //サウンド・ボリューム
-    var downBeatVolume = 1.0f
-    var weakBeatVolume = 1.0f
-    var subWeakBeatVolume = 1.0f
+    //Heavy
+    var downBeatVolumeHeavy = 0.6f
+    var weakBeatVolumeHeavy = 0.6f
+    var subWeakBeatVolumeHeavy = 0.6f
+    //Light
+    var downBeatVolumeLight = 0.6f
+    var weakBeatVolumeLight = 0.6f
+    var subWeakBeatVolumeLight = 0.6f
+    //Light
+    var downBeatVolumeSwing = 0.6f
+    var weakBeatVolumeSwing = 0.6f
 
 
     enum class SoundName {

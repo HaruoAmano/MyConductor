@@ -224,7 +224,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="0"
-            android:progress="10"
             android:max="10"
             />
     </FrameLayout>
@@ -248,7 +247,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="0"
-            android:progress="7"
             android:max="10"
             />
     </FrameLayout>
@@ -272,7 +270,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:min="0"
-            android:progress="5"
             android:max="10"
             />
     </FrameLayout>

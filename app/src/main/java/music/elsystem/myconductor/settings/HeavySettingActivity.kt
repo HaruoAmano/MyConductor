@@ -1,40 +1,25 @@
 package music.elsystem.myconductor.settings
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.AudioAttributes
-import android.media.SoundPool
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.SeekBar
-import music.elsystem.myconductor.Common
 import music.elsystem.myconductor.Common.RenderMode.*
-import music.elsystem.myconductor.Common.bmpBeat
 import music.elsystem.myconductor.Common.dotSize
-import music.elsystem.myconductor.Common.downBeatVolume
-import music.elsystem.myconductor.Common.lstSpOnbeat
-import music.elsystem.myconductor.Common.motionYMultiplier
+import music.elsystem.myconductor.Common.downBeatVolumeHeavy
 import music.elsystem.myconductor.Common.offbeatDotSizeHeavy
 import music.elsystem.myconductor.Common.renderMode
 import music.elsystem.myconductor.Common.settingSurfaceHeight
 import music.elsystem.myconductor.Common.settingSurfaceWidth
-import music.elsystem.myconductor.Common.soundPool
-import music.elsystem.myconductor.Common.spOffbeatVoice
 import music.elsystem.myconductor.Common.stayingFrameRate
-import music.elsystem.myconductor.Common.subWeakBeatVolume
-import music.elsystem.myconductor.Common.surfaceHeight
-import music.elsystem.myconductor.Common.surfaceWidth
+import music.elsystem.myconductor.Common.subWeakBeatVolumeHeavy
 import music.elsystem.myconductor.Common.tempo
-import music.elsystem.myconductor.Common.voice
-import music.elsystem.myconductor.Common.weakBeatVolume
+import music.elsystem.myconductor.Common.weakBeatVolumeHeavy
 import music.elsystem.myconductor.MainActivity
-import music.elsystem.myconductor.R
 import music.elsystem.myconductor.databinding.ActivityHeavySettingBinding
 import music.elsystem.myconductor.surfaceview.dotSurfaceview.GlSurfaceView
 
@@ -123,12 +108,12 @@ class HeavySettingActivity : AppCompatActivity() {
         //サウンド・ボリューム***********************************************
         //表拍
         //プログレス設定
-        bd.sbDownBeatVolume.progress = (downBeatVolume * 10).toInt()
+        bd.sbDownBeatVolume.progress = (downBeatVolumeHeavy * 10).toInt()
         //設定変更
         bd.sbDownBeatVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                downBeatVolume = progress / 10f
+                downBeatVolumeHeavy = progress / 10f
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
@@ -139,12 +124,12 @@ class HeavySettingActivity : AppCompatActivity() {
         })
         //裏拍
         //プログレス設定
-        bd.sbWeakBeatVolume.progress = (weakBeatVolume * 10).toInt()
+        bd.sbWeakBeatVolume.progress = (weakBeatVolumeHeavy * 10).toInt()
         //設定変更
         bd.sbWeakBeatVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                weakBeatVolume = progress / 10f
+                weakBeatVolumeHeavy = progress / 10f
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
@@ -155,12 +140,12 @@ class HeavySettingActivity : AppCompatActivity() {
         })
         //裏裏拍
         //プログレス設定
-        bd.sbSubweakBeatVolume.progress = (subWeakBeatVolume * 10).toInt()
+        bd.sbSubweakBeatVolume.progress = (subWeakBeatVolumeHeavy * 10).toInt()
         //設定変更
         bd.sbSubweakBeatVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                subWeakBeatVolume = progress / 10f
+                subWeakBeatVolumeHeavy = progress / 10f
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {

@@ -10,12 +10,17 @@ import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.motionYMultiplier
 import music.elsystem.myconductor.Common.renderMode
 import music.elsystem.myconductor.Common.rhythm
+import music.elsystem.myconductor.Common.rhythmVariation
 import music.elsystem.myconductor.Common.stayingFrameRate
 import music.elsystem.myconductor.Common.tempo
+import music.elsystem.myconductor.GraphicValue
 import music.elsystem.myconductor.GraphicValue.OneBeat
 import music.elsystem.myconductor.GraphicValue.TwoBeat
 import music.elsystem.myconductor.GraphicValue.ThreeBeat
 import music.elsystem.myconductor.GraphicValue.FourBeat
+import music.elsystem.myconductor.GraphicValue.FiveBeat_2_3
+import music.elsystem.myconductor.GraphicValue.FiveBeat_3_2
+import music.elsystem.myconductor.GraphicValue.SixBeat
 import music.elsystem.myconductor.GraphicValue.strRgb
 import music.elsystem.myconductor.Util
 import music.elsystem.myconductor.Util.Companion.mPow
@@ -32,7 +37,7 @@ class LogicalPosList() {
     private var oneBeatFrame = 0
     private var oneBarFrame = 0
     private var multiplier = 0.0
-    //セッティングでの描画時はリズムを１とするが、共用変数privateRhythmに影響を与えないようにプライベートで定義し使用する。
+    //セッティングでの描画時はリズムを１とするが、共用変数rhythmに影響を与えないようにプライベートで定義し使用する。
     private var privateRhythm = 0
 
     //ドットのマッピング配列
@@ -96,6 +101,19 @@ class LogicalPosList() {
                     4 -> {
                         highestPosition = FourBeat.highestPosition.toMutableList()
                         lowestPosition = FourBeat.lowestPosition.toMutableList()
+                    }
+                    5 -> {
+                        if (rhythmVariation == 0) {
+                            highestPosition = FiveBeat_2_3.highestPosition.toMutableList()
+                            lowestPosition = FiveBeat_2_3.lowestPosition.toMutableList()
+                        } else {
+                            highestPosition = FiveBeat_3_2.highestPosition.toMutableList()
+                            lowestPosition = FiveBeat_3_2.lowestPosition.toMutableList()
+                        }
+                    }
+                    6 -> {
+                        highestPosition = SixBeat.highestPosition.toMutableList()
+                        lowestPosition = SixBeat.lowestPosition.toMutableList()
                     }
                 }
             }
