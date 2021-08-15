@@ -59,7 +59,7 @@ class Sound() {
                     if (frameCount % minInterval == 0) {
                         //表拍
                         if (frameCount % oneBeatFrame == 0) {
-                            Log.i("$tactType 各拍頭","${System.currentTimeMillis()}")
+                            Log.i("$tactType 各拍頭","${System.currentTimeMillis()},frameCount:$frameCount,oneBeatFrame:$oneBeatFrame,minInterval:$minInterval")
                             if (renderMode == Setting.name) {
                                 soundPool?.play(
                                     lstSpOnbeat[1],

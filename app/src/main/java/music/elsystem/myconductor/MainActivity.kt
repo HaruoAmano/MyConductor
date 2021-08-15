@@ -504,7 +504,7 @@ class MainActivity : AppCompatActivity() {
                 lstResIdOnbeatAll.add(R.raw.six)
                 lstResIdOnbeatAll.add(R.raw.seven)
                 spOffbeatVoice = R.raw.and
-                spOffbeatVoice2 = R.raw.an
+                spOffbeatVoice2 = R.raw.kattu
             }
             Click.name -> {
                 lstResIdOnbeatAll.add(R.raw.piin)
@@ -533,9 +533,10 @@ class MainActivity : AppCompatActivity() {
         SoundPool.Builder().run {
             val audioAttributes = AudioAttributes.Builder().run {
                 setUsage(AudioAttributes.USAGE_MEDIA)
+                setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 build()
             }
-            setMaxStreams(20)
+            setMaxStreams(2)
             setAudioAttributes(audioAttributes)
             build()
         }.also { soundPool = it }

@@ -54,9 +54,9 @@ object Common {
     var offBeatNum = 1
     //サウンド・ボリューム
     //Heavy
-    var downBeatVolumeHeavy = 0.6f
+    var downBeatVolumeHeavy = 0.7f
     var weakBeatVolumeHeavy = 0.6f
-    var subWeakBeatVolumeHeavy = 0.6f
+    var subWeakBeatVolumeHeavy = 0.3f
     //Light
     var downBeatVolumeLight = 0.6f
     var weakBeatVolumeLight = 0.6f

@@ -4,6 +4,8 @@ import android.opengl.GLES20
 import android.opengl.GLES20.*
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
+import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.Tact.*
 import music.elsystem.myconductor.Common.alphaMultiplier
@@ -27,56 +29,47 @@ import music.elsystem.myconductor.surfaceview.Shader.numberFragmentSource
 import music.elsystem.myconductor.surfaceview.Shader.numberVertexSource
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.pow
 
 //セッティングモードの時はナンバー描画ロジックは回避している。
-class GlRenderer() : GLSurfaceView.Renderer {
+class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
     //シェーダプログラムID
     private var dotProgramId = 0
     private var numberProgramId = 0
-
+    private var soundJob:Job? = null
+    val scope = CoroutineScope(Job() + Dispatchers.Default)
     //ヴュー＆プロジェクションマッピング行列
     private val mViewAndProjectionMatrix = FloatArray(16)
-
     //ドット描画クラス
     private val circle = Circle()
-
     //打点ナンバー描画クラス
     private val numDraw = NumDraw()
-
     //打点ナンバーのテクスチャ（ピクチャ）数
     private val textureArrayNum = IntArray(rhythm)
-
     //メッシュ描画クラス（テスト用）
     private val mesh = Mesh()
-
     //サウンドクラス
     private var sound = Sound()
-
     //onDrawFrameが実行されるごとにインクリメントされる。一小節中の特定のドットを
     //指し示すために使用する。
     private var frameCount = 0
-
+    private var oldFrameCount = 0
     //ドットサイズ変化割合の係数
     private var radiusRadix = 0.0
-
     //アルファ変化割合の係数
     private var dotAlpha = 0.0
     private val ut = Util()
-
     //セッティングでの描画時はリズムを１とするが、共用変数rhythmに影響を与えないようにプライベートで定義し使用する。
     private var privateRhythm = 0
-
     //UIで指定された一小節フレーム内の各要素を描画のに必要なフレーム数。
     private var halfBeatFrame = 0
     private var oneBeatFrame = 0
     private var oneBarFrame = 0
     val lp = LogicalPosList()
-
     //ドットのマッピング配列
     var logicalX: MutableList<Int> = mutableListOf()
     var logicalY: MutableList<Int> = mutableListOf()
-
     //打点ナンバーのマッピング配列
     var numberPosXList: MutableList<Int> = mutableListOf()
     var numberPosYList: MutableList<Int> = mutableListOf()
@@ -323,7 +316,16 @@ class GlRenderer() : GLSurfaceView.Renderer {
             }
         }
         //メトロノームサウンドを鳴らす。**********************************************************
-        sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
+        soundJob = scope.launch {
+            //なぜか同一frameCountで連続して起動されるケースがあった（ログで確認）ので応急的に条件を追加。
+            if (frameCount != oldFrameCount){
+                sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
+            }
+            oldFrameCount = frameCount
+        }
+//        launch(context = Dispatchers.Default) {
+//            sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
+//        }
         //**********************************************************************
         frameCount++
         if (frameCount >= oneBarFrame) {
