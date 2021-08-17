@@ -4,7 +4,7 @@ import android.widget.TextView
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.logeicalSpaceX
 import music.elsystem.myconductor.Common.logeicalSpaceY
-import music.elsystem.myconductor.Common.offBeatNum
+import music.elsystem.myconductor.Common.noteNumPerBeat
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.tactType
@@ -58,11 +58,11 @@ class Util() {
                 //temporaryHalfBeatはケースにより上書きしていくので注意！（もっといい書き方ないか？）
                 temporaryHalfBeat = 1800f / tempo.toFloat()
                 //裏拍が３連符の場合、強制的に３の倍数に変換する。
-                if (offBeatNum == 3) {
+                if (noteNumPerBeat == 3) {
                     temporaryHalfBeat = ((temporaryHalfBeat / 3f).toInt() * 3).toFloat()
                 }
                 //裏拍が４連符の場合、強制的に４の倍数に変換する。
-                if (offBeatNum == 4) {
+                if (noteNumPerBeat == 4) {
                     temporaryHalfBeat = ((temporaryHalfBeat / 4f).toInt() * 4).toFloat()
                 }
             }

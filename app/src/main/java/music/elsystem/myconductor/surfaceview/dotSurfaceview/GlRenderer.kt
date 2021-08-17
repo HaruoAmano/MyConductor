@@ -37,39 +37,48 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
     //シェーダプログラムID
     private var dotProgramId = 0
     private var numberProgramId = 0
-    private var soundJob:Job? = null
-    val scope = CoroutineScope(Job() + Dispatchers.Default)
+    private var soundJob: Job? = null
+    val scope = CoroutineScope(Dispatchers.IO + Job())
+
     //ヴュー＆プロジェクションマッピング行列
     private val mViewAndProjectionMatrix = FloatArray(16)
+
     //ドット描画クラス
     private val circle = Circle()
+
     //打点ナンバー描画クラス
     private val numDraw = NumDraw()
+
     //打点ナンバーのテクスチャ（ピクチャ）数
     private val textureArrayNum = IntArray(rhythm)
-    //メッシュ描画クラス（テスト用）
-    private val mesh = Mesh()
+
     //サウンドクラス
     private var sound = Sound()
+
     //onDrawFrameが実行されるごとにインクリメントされる。一小節中の特定のドットを
     //指し示すために使用する。
     private var frameCount = 0
-    private var oldFrameCount = 0
+
     //ドットサイズ変化割合の係数
     private var radiusRadix = 0.0
+
     //アルファ変化割合の係数
     private var dotAlpha = 0.0
     private val ut = Util()
+
     //セッティングでの描画時はリズムを１とするが、共用変数rhythmに影響を与えないようにプライベートで定義し使用する。
     private var privateRhythm = 0
+
     //UIで指定された一小節フレーム内の各要素を描画のに必要なフレーム数。
     private var halfBeatFrame = 0
     private var oneBeatFrame = 0
     private var oneBarFrame = 0
-    val lp = LogicalPosList()
+    private val lp = LogicalPosList()
+
     //ドットのマッピング配列
     var logicalX: MutableList<Int> = mutableListOf()
     var logicalY: MutableList<Int> = mutableListOf()
+
     //打点ナンバーのマッピング配列
     var numberPosXList: MutableList<Int> = mutableListOf()
     var numberPosYList: MutableList<Int> = mutableListOf()
@@ -146,6 +155,11 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
     }
 
     override fun onDrawFrame(gl10: GL10) {
+
+        //メトロノームサウンドを鳴らす。**********************************************************
+        soundJob = scope.launch {
+            sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
+        }
         //画面クリア
         //最初に glClearColor で設定した色で初期化される。
         glClear(GL_COLOR_BUFFER_BIT)
@@ -183,19 +197,13 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                 perOfHalfBeat = 1.0f
                 offbeatDotSize = 0.0f
             }
-            Swing.name -> {
-                perOfHalfBeat = perOfHalfBeatSwing
-                offbeatDotSize = offbeatDotSizeSwing
-            }
-
         }
         val lowerFrameNum = (halfBeatFrame * perOfHalfBeat).toInt()
         var l = 0
         //拍数分ループ
-        when (tactType){
+        when (tactType) {
             Heavy.name -> radiusMultiplier = 3.0
             Light.name -> radiusMultiplier = motionYMultiplier.pow(3.0)
-            Swing.name -> radiusMultiplier = 5.0
         }
         for (i in 0 until privateRhythm) {
             //一拍のフレーム分ループ
@@ -211,7 +219,8 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                     } else {
                         //上半分のドットに対する処理
                         radiusRadix =
-                            ((k % halfBeatFrame) * offbeatDotSize).toInt().radiusPow() / halfBeatFrame.radiusPow()
+                            ((k % halfBeatFrame) * offbeatDotSize).toInt()
+                                .radiusPow() / halfBeatFrame.radiusPow()
 //                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
                     }
                 } else {
@@ -219,7 +228,8 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                     if (k % halfBeatFrame < (halfBeatFrame - lowerFrameNum)) {
                         //上半分のドットに対する処理
                         radiusRadix =
-                            ((halfBeatFrame - (k % halfBeatFrame)) * offbeatDotSize).toInt().radiusPow().div( halfBeatFrame.radiusPow())
+                            ((halfBeatFrame - (k % halfBeatFrame)) * offbeatDotSize).toInt()
+                                .radiusPow().div(halfBeatFrame.radiusPow())
 //                            Log.i("@@@@", "i:$i 上半分radiusCoefficient: $radiusCoefficient")
                     } else {
                         //下半分のドットに対する処理
@@ -235,7 +245,7 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                     dotProgramId,
                     logicalX[l],
                     logicalY[l],
-                    32,
+                    20,
                     (radiusRadix * dotSize).toFloat() + 3.0f,
                     1f, 1f, 1f, dotAlpha.toFloat()
                 )
@@ -244,8 +254,6 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                 l += 1
             }
         }
-        //メッシュの描画を行う（テスト用）場合に呼ぶ。********************************************
-        //mesh.drawMesh(dotProgramId)
         if (renderMode == Motion.name) {
             //打点の数字を描画する。***************************************************************
             glUseProgram(numberProgramId)
@@ -266,7 +274,8 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                     numberId = ((frameCount + halfBeatFrame).div(oneBeatFrame)) % privateRhythm
                 }
                 Light.name, Swing.name -> {
-                    numAlpha = 1f - ((frameCount % oneBeatFrame).div(oneBeatFrame.toFloat()).pow(5.0f))
+                    numAlpha =
+                        1f - ((frameCount % oneBeatFrame).div(oneBeatFrame.toFloat()).pow(5.0f))
                     numberId = frameCount.div(oneBeatFrame)
                 }
             }
@@ -302,34 +311,19 @@ class GlRenderer() : GLSurfaceView.Renderer, CoroutineScope by MainScope() {
                     }
                     Light.name -> {
                         if ((frameCount.div(halfBeatFrame)) == 2) {
-                            backFlash = 1f - (frameCount % halfBeatFrame).div(halfBeatFrame.toFloat())
-                        }
-                    }
-                    Swing.name -> {
-                        if ((frameCount.div((oneBeatFrame.div(2)))) == 2) {
-                            backFlash = 1f - (frameCount % oneBeatFrame).div(oneBeatFrame.toFloat())
+                            backFlash =
+                                1f - (frameCount % halfBeatFrame).div(halfBeatFrame.toFloat())
                         }
                     }
                 }
                 glClearColor(0.3f, 0.3f + (0.2f * backFlash), 1.0f, 1.0f)
-//        glClearColor(0.3f, 0.3f, 1.0f - (0.7f * backFlash), 1.0f)
             }
+            //**********************************************************************
         }
-        //メトロノームサウンドを鳴らす。**********************************************************
-        soundJob = scope.launch {
-            //なぜか同一frameCountで連続して起動されるケースがあった（ログで確認）ので応急的に条件を追加。
-            if (frameCount != oldFrameCount){
-                sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
-            }
-            oldFrameCount = frameCount
-        }
-//        launch(context = Dispatchers.Default) {
-//            sound.sound(halfBeatFrame, oneBeatFrame, frameCount)
-//        }
-        //**********************************************************************
         frameCount++
         if (frameCount >= oneBarFrame) {
             frameCount = 0
+
         }
     }
 

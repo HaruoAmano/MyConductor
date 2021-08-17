@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.media.AudioAttributes
 import android.media.SoundPool
 import android.os.Bundle
@@ -21,12 +22,14 @@ import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import music.elsystem.myconductor.Common.RenderMode.*
 import music.elsystem.myconductor.Common.SoundName.*
 import music.elsystem.myconductor.Common.justTappedSw
 import music.elsystem.myconductor.Common.justTappedSoundSw
-import music.elsystem.myconductor.Common.offBeatNum
+import music.elsystem.myconductor.Common.noteNumPerBeat
 import music.elsystem.myconductor.Common.surfaceHeight
 import music.elsystem.myconductor.Common.surfaceWidth
 import music.elsystem.myconductor.Common.Tact.*
@@ -45,7 +48,6 @@ import music.elsystem.myconductor.GraphicValue.numberBitmapList
 import music.elsystem.myconductor.databinding.ActivityMainBinding
 import music.elsystem.myconductor.settings.HeavySettingActivity
 import music.elsystem.myconductor.settings.LightSettingActivity
-import music.elsystem.myconductor.settings.SwingSettingActivity
 import music.elsystem.myconductor.surfaceview.dotSurfaceview.GlSurfaceView
 import music.elsystem.myconductor.surfaceview.lineSureface.LineSurfaceView
 
@@ -99,16 +101,13 @@ class MainActivity : AppCompatActivity() {
         bd.layoutGlSurfaceView.addView(lineSurfaceview)
         //タクトタイプの初期値はLight
         bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-        bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
         //タクト****************************************************************
         //Heavy
         bd.btnHeavy.setOnClickListener {
             tactType = Heavy.name
             bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
             bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-            bd.tvTitleOffBeat.visibility = View.VISIBLE
-            bd.rgOffBeatNum.visibility = View.VISIBLE
+            bd.rgNoteNumPerOnebeat.visibility = View.VISIBLE
             if (isStarted) {
                 updateGlSurface()
             }
@@ -119,9 +118,7 @@ class MainActivity : AppCompatActivity() {
                 tactType = Heavy.name
                 bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
                 bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-                bd.tvTitleOffBeat.visibility = View.VISIBLE
-                bd.rgOffBeatNum.visibility = View.VISIBLE
+                bd.rgNoteNumPerOnebeat.visibility = View.VISIBLE
                 val heavySettingIntent =
                     Intent(applicationContext, HeavySettingActivity::class.java)
                 startActivityForResult(heavySettingIntent, 200)
@@ -133,9 +130,7 @@ class MainActivity : AppCompatActivity() {
             tactType = Light.name
             bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
             bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-            bd.tvTitleOffBeat.visibility = View.VISIBLE
-            bd.rgOffBeatNum.visibility = View.VISIBLE
+            bd.rgNoteNumPerOnebeat.visibility = View.VISIBLE
             if (isStarted) {
                 updateGlSurface()
             }
@@ -146,56 +141,10 @@ class MainActivity : AppCompatActivity() {
                 tactType = Light.name
                 bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
                 bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-                bd.tvTitleOffBeat.visibility = View.VISIBLE
-                bd.rgOffBeatNum.visibility = View.VISIBLE
+                bd.rgNoteNumPerOnebeat.visibility = View.VISIBLE
                 val lightSettingIntent =
                     Intent(applicationContext, LightSettingActivity::class.java)
                 startActivityForResult(lightSettingIntent, 200)
-            }
-            true
-        }
-
-        //Swing
-        bd.btnSwing.setOnClickListener {
-            tactType = Swing.name
-            bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-            bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-            bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-            if (bd.tvTempo.text.toString().toInt() < 40) {
-                tempo = 72
-                ut.tempoChanged(
-                    tempo,
-                    bd.tvTempo,
-                    bd.tvTempoSign
-                )
-            }
-            bd.tvTitleOffBeat.visibility = View.INVISIBLE
-            bd.rgOffBeatNum.visibility = View.INVISIBLE
-            if (isStarted) {
-                updateGlSurface()
-            }
-        }
-        //Swing詳細画面
-        bd.btnSwing.setOnLongClickListener {
-            if (!isStarted) {
-                tactType = Swing.name
-                bd.btnHeavy.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-                bd.btnLight.setBackgroundColor(Color.parseColor(COLOR_BUTTON_PALE))
-                bd.btnSwing.setBackgroundColor(Color.parseColor(COLOR_BUTTON))
-                if (bd.tvTempo.text.toString().toInt() < 40) {
-                    tempo = 72
-                    ut.tempoChanged(
-                        tempo,
-                        bd.tvTempo,
-                        bd.tvTempoSign
-                    )
-                }
-                bd.tvTitleOffBeat.visibility = View.INVISIBLE
-                bd.rgOffBeatNum.visibility = View.INVISIBLE
-                val swingSettingIntent =
-                    Intent(applicationContext, SwingSettingActivity::class.java)
-                startActivityForResult(swingSettingIntent, 200)
             }
             true
         }
@@ -219,13 +168,38 @@ class MainActivity : AppCompatActivity() {
             }
         }
         //裏拍の刻み　NONE or２（裏） or ３（３連） or ４（裏裏）
-        bd.rgOffBeatNum.check(bd.rbNone.id)
-        bd.rgOffBeatNum.setOnCheckedChangeListener { _, checkedId ->
+        noteNumPerBeatUnable()
+        bd.rgNoteNumPerOnebeat.check(bd.rbQuarterNote.id)
+        bd.rbQuarterNote.setBackgroundResource(R.drawable.quarter_note_on)
+        bd.rgNoteNumPerOnebeat.setOnCheckedChangeListener { _, checkedId ->
+            noteNumPerBeatUnable()
             when (checkedId) {
-                bd.rbNone.id -> offBeatNum = 1
-                bd.rbTwo.id -> offBeatNum = 2
-                bd.rbThree.id -> offBeatNum = 3
-                bd.rbFour.id -> offBeatNum = 4
+                bd.rbQuarterNote.id -> {
+                    noteNumPerBeat = 1
+                    bd.rbQuarterNote.setBackgroundResource(R.drawable.quarter_note_on)
+                }
+                bd.rbEighthNote.id -> {
+                    noteNumPerBeat = 2
+                    bd.rbEighthNote.setBackgroundResource(R.drawable.eighth_note_on)
+                }
+                bd.rbTripletNote.id -> {
+                    if (bd.tvTempo.text.toString().toInt() <= 60) {
+                        noteNumPerBeat = 3
+                        bd.rbTripletNote.setBackgroundResource(R.drawable.triplet_note_on)
+                    }else{
+                        Toast.makeText(this, "Can only be used, tempo is below 60", Toast.LENGTH_SHORT).show()
+                        bd.rgNoteNumPerOnebeat.check(bd.rbQuarterNote.id)
+                    }
+                }
+                bd.rbSixteenthNote.id -> {
+                    if (bd.tvTempo.text.toString().toInt() <= 40) {
+                        noteNumPerBeat = 4
+                        bd.rbSixteenthNote.setBackgroundResource(R.drawable.sixteenth_note_on)
+                    }else {
+                        Toast.makeText(this, "Can only be used, tempo is below 40.", Toast.LENGTH_SHORT).show()
+                        bd.rgNoteNumPerOnebeat.check(bd.rbEighthNote.id)
+                    }
+                }
             }
             if (isStarted) {
                 updateGlSurface()
@@ -272,21 +246,15 @@ class MainActivity : AppCompatActivity() {
         bd.tvTempo.setText(tempo.toString())
         bd.tvTempo.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(p0: Editable?) {
-                if (bd.tvTempo.text.toString().toInt() <= 40) {
-                    bd.rbFour.isEnabled = true
-                } else {
-                    if (bd.rbFour.isChecked) {
-                        bd.rgOffBeatNum.check(bd.rbTwo.id)
+                if (bd.tvTempo.text.toString().toInt() > 60) {
+                    if (bd.rbTripletNote.isChecked) {
+                        bd.rgNoteNumPerOnebeat.check(bd.rbQuarterNote.id)
                     }
-                    bd.rbFour.isEnabled = false
                 }
-                if (bd.tvTempo.text.toString().toInt() <= 60) {
-                    bd.rbThree.isEnabled = true
-                } else {
-                    if (bd.rbThree.isChecked) {
-                        bd.rgOffBeatNum.check(bd.rbNone.id)
+                if (bd.tvTempo.text.toString().toInt() > 40) {
+                    if (bd.rbSixteenthNote.isChecked) {
+                        bd.rgNoteNumPerOnebeat.check(bd.rbEighthNote.id)
                     }
-                    bd.rbThree.isEnabled = false
                 }
             }
 
@@ -298,7 +266,7 @@ class MainActivity : AppCompatActivity() {
         bd.btnTap.setOnClickListener(tapListener)
         //********* spnRhythmスピナーの設定（2beat,4beat etc...) *********************
         val rhythmList = listOf(
-            "2beat", "3beat", "4beat", "5beat(2+3)", "5beat(3+2)", "6beat"
+            "2beat", "3beat", "4beat", "6beat"
         )
         // spinner に adapter をセット
         bd.spnBeat.adapter =
@@ -338,26 +306,6 @@ class MainActivity : AppCompatActivity() {
                             rhythmVariation = 0
                             bmpBeat =
                                 BitmapFactory.decodeResource(resources, R.drawable.beat_4, options)
-                        }
-                        "5beat(2+3)" -> {
-                            rhythm = 5
-                            rhythmVariation = 0
-                            bmpBeat =
-                                BitmapFactory.decodeResource(
-                                    resources,
-                                    R.drawable.beat_5_2_3,
-                                    options
-                                )
-                        }
-                        "5beat(3+2)" -> {
-                            rhythm = 5
-                            rhythmVariation = 1
-                            bmpBeat =
-                                BitmapFactory.decodeResource(
-                                    resources,
-                                    R.drawable.beat_5_3_2,
-                                    options
-                                )
                         }
                         "6beat" -> {
                             rhythm = 6
@@ -489,6 +437,12 @@ class MainActivity : AppCompatActivity() {
             numberBitmapList.add(numberBitmapListAll[j])
         }
     }
+    private fun noteNumPerBeatUnable(){
+        bd.rbQuarterNote.setBackgroundResource(R.drawable.quarter_note_off)
+        bd.rbEighthNote.setBackgroundResource(R.drawable.eighth_note_off)
+        bd.rbTripletNote.setBackgroundResource(R.drawable.triplet_note_off)
+        bd.rbSixteenthNote.setBackgroundResource(R.drawable.sixteenth_note_off)
+    }
 
     //音声ファイルを準備する。
     private fun setSoundList(voice: String, rhythm: Int) {
@@ -504,7 +458,7 @@ class MainActivity : AppCompatActivity() {
                 lstResIdOnbeatAll.add(R.raw.six)
                 lstResIdOnbeatAll.add(R.raw.seven)
                 spOffbeatVoice = R.raw.and
-                spOffbeatVoice2 = R.raw.kattu
+                spOffbeatVoice2 = R.raw.wood_weak
             }
             Click.name -> {
                 lstResIdOnbeatAll.add(R.raw.piin)
@@ -514,8 +468,8 @@ class MainActivity : AppCompatActivity() {
                 lstResIdOnbeatAll.add(R.raw.pon)
                 lstResIdOnbeatAll.add(R.raw.pon)
                 lstResIdOnbeatAll.add(R.raw.pon)
-                spOffbeatVoice = R.raw.kattu
-                spOffbeatVoice2 = R.raw.chi
+                spOffbeatVoice = R.raw.wood
+                spOffbeatVoice2 = R.raw.wood_weak
             }
         }
         //選択されたrhythmに応じて、実際に使用される表拍の音声リストを作成する。
@@ -536,7 +490,7 @@ class MainActivity : AppCompatActivity() {
                 setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 build()
             }
-            setMaxStreams(2)
+            setMaxStreams(4)
             setAudioAttributes(audioAttributes)
             build()
         }.also { soundPool = it }

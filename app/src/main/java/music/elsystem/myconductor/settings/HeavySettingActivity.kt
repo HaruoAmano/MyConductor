@@ -32,7 +32,7 @@ class HeavySettingActivity : AppCompatActivity() {
         bd = ActivityHeavySettingBinding.inflate(layoutInflater)
         setContentView(bd.root)
         //描画中かどうか（
-        var isSetStarted = false
+        var isStarted_Setting = false
         //サーフェスビューの親ビューであるLinearLayoutを生成する。
         val observerSurfaceViewLayout: ViewTreeObserver =
             bd.layoutSettingSurfaceView.viewTreeObserver
@@ -50,22 +50,7 @@ class HeavySettingActivity : AppCompatActivity() {
                 stayingFrameRate = (progress / 1000f)
             }
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
-                    updateGlSurface()
-                }
-            }
-        })
-        //裏拍のドットサイズ*********************************************
-        //プログレス設定
-        bd.sbOffbeatDotSize.progress = (offbeatDotSizeHeavy * 100).toInt()
-        //設定変更
-        bd.sbOffbeatDotSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                offbeatDotSizeHeavy = (progress / 100f)
-            }
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
@@ -81,7 +66,7 @@ class HeavySettingActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
@@ -98,7 +83,7 @@ class HeavySettingActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
@@ -117,7 +102,7 @@ class HeavySettingActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
@@ -133,7 +118,7 @@ class HeavySettingActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
@@ -149,25 +134,25 @@ class HeavySettingActivity : AppCompatActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (isSetStarted) {
+                if (isStarted_Setting) {
                     updateGlSurface()
                 }
             }
         })
         //スタート・ストップ
         bd.layoutSettingSurfaceView.setOnClickListener {
-            Log.i("@@@@", "$isSetStarted")
-            if (!isSetStarted) {
+            Log.i("@@@@", "$isStarted_Setting")
+            if (!isStarted_Setting) {
                 renderMode = Setting.name
                 settingSurfaceView = GlSurfaceView(
                     applicationContext)
                 bd.tvTap.visibility = View.INVISIBLE
                 bd.layoutSettingSurfaceView.addView(settingSurfaceView)
-                isSetStarted = true
+                isStarted_Setting = true
             } else {
                 bd.tvTap.visibility = View.VISIBLE
                 bd.layoutSettingSurfaceView.removeAllViews()
-                isSetStarted = false
+                isStarted_Setting = false
             }
         }
         bd.btnBack.setOnClickListener {

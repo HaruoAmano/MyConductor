@@ -94,7 +94,7 @@
         style="@style/SettingTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tact Heavy Settings"
+        android:text="Heavy Settings"
         app:layout_constraintBottom_toTopOf="@+id/guideline_h1"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1" />
 
@@ -143,33 +143,12 @@
             android:id="@+id/sb_tact_gravity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:min="50"
+            android:min="0"
             android:max="200"
             />
     </FrameLayout>
-    <TextView
-        android:id="@+id/tv_offbeat_dot_size"
-        style="@style/ItemTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OffBeat Dot Size"
-        app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toBottomOf="@+id/fl_tact_gravity" />
-    <FrameLayout
-        android:id="@+id/fl_offbeat_dot_size"
-        android:layout_width="0dp"
-        android:layout_height="30dp"
-        app:layout_constraintEnd_toStartOf="@+id/guideline_v1_3"
-        app:layout_constraintStart_toStartOf="@+id/guideline_v1_1"
-        app:layout_constraintTop_toBottomOf="@+id/tv_offbeat_dot_size">
-        <SeekBar
-            android:id="@+id/sb_offbeat_dot_size"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:min="80"
-            android:max="110"
-            />
-    </FrameLayout>
+
+
     <TextView
         style="@style/ItemTitle"
         android:id="@+id/tv_dot_size"
@@ -177,7 +156,7 @@
         android:layout_height="wrap_content"
         android:text="Dot Size"
         app:layout_constraintStart_toStartOf="@+id/guideline_v1"
-        app:layout_constraintTop_toBottomOf="@+id/fl_offbeat_dot_size" />
+        app:layout_constraintTop_toBottomOf="@+id/fl_tact_gravity" />
     <FrameLayout
         android:id="@+id/fl_dot_size"
         android:layout_width="0dp"

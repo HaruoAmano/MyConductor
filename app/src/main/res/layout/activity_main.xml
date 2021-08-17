@@ -169,18 +169,6 @@
         app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline1_desc"
         app:layout_constraintStart_toStartOf="@id/guidelineV1"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline1" />
-
-    <Button
-        android:id="@+id/btn_heavy"
-        style="@style/Material.RadiusButton"
-        android:padding="0dp"
-        android:text="@string/tact_heavy"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline1_desc"
-        app:layout_constraintEnd_toStartOf="@+id/btn_light"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="@+id/guidelineV2"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline1" />
-
     <Button
         android:id="@+id/btn_light"
         style="@style/Material.RadiusButton"
@@ -188,20 +176,19 @@
         android:padding="0dp"
         android:text="@string/tact_light"
         app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline1_desc"
-        app:layout_constraintEnd_toStartOf="@+id/btn_swing"
+        app:layout_constraintEnd_toStartOf="@+id/btn_heavy"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toEndOf="@+id/btn_heavy"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/guidelineV2"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline1" />
-
     <Button
-        android:id="@+id/btn_swing"
+        android:id="@+id/btn_heavy"
         style="@style/Material.RadiusButton"
         android:padding="0dp"
-        android:text="@string/tact_swing"
+        android:text="@string/tact_heavy"
         app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline1_desc"
-        app:layout_constraintEnd_toEndOf="@id/guidelineV6"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineV6"
+        app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toEndOf="@+id/btn_light"
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline1" />
 
@@ -368,20 +355,10 @@
             android:textSize="14sp" />
     </RadioGroup>
 
-    <TextView
-        android:id="@+id/tv_title_offBeat"
-        style="@style/ItemTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/Offbeat_title"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_h_uiline6"
-        app:layout_constraintStart_toStartOf="@id/guidelineV1"
-        app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline5" />
-
     <RadioGroup
-        android:id="@+id/rg_off_beat_num"
+        android:id="@+id/rg_note_num_per_onebeat"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
+        android:layout_height="50dp"
         android:layout_gravity="center"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="@+id/guideline_h_uiline6"
@@ -389,37 +366,44 @@
         app:layout_constraintTop_toTopOf="@+id/guideline_h_uiline5">
 
         <RadioButton
-            android:id="@+id/rb_none"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:buttonTint="@color/button"
-            android:text="0"
-            android:textSize="14sp" />
+            android:id="@+id/rb_quarter_note"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:button="@null"
+            android:layout_gravity="center"
+            android:background="@drawable/quarter_note_off"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
 
         <RadioButton
-            android:id="@+id/rb_two"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:buttonTint="@color/button"
-            android:text="1"
-            android:textSize="14sp" />
+            android:id="@+id/rb_eighth_note"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:button="@null"
+            android:layout_gravity="center"
+            android:background="@drawable/eighth_note_off"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
 
         <RadioButton
-            android:id="@+id/rb_three"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:buttonTint="@color/button"
-            android:text="2"
-            android:textSize="14sp" />
+            android:id="@+id/rb_triplet_note"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:button="@null"
+            android:layout_gravity="center"
+            android:background="@drawable/triplet_note_off"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
 
         <RadioButton
-            android:id="@+id/rb_four"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:buttonTint="@color/button"
-            android:text="3"
-            android:textSize="14sp"
-            android:enabled="false"/>
+            android:id="@+id/rb_sixteenth_note"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:button="@null"
+            android:layout_gravity="center"
+            android:background="@drawable/sixteenth_note_off"
+            android:scaleX="0.7"
+            android:scaleY="0.7" />
     </RadioGroup>
 
 

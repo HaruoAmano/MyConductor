@@ -23,10 +23,10 @@ object Common {
     var dotSize = 15.0f
     var motionYMultiplier = 2.0
     //裏拍のドットサイズ
-    var offbeatDotSizeHeavy = 0.85f
+    var offbeatDotSizeHeavy = 0.8f
     var offbeatDotSizeSwing = 0.95f
     //タクト＝Heavyの時の打点での滞留する度合
-    var stayingFrameRate = 0.07f
+    var stayingFrameRate = 0.1f
     //タクト＝Swingの時のドットサイズの打点からの折り返し地点を管理
     var perOfHalfBeatSwing = 0.0f
 
@@ -51,7 +51,7 @@ object Common {
     var justTappedSoundSw = true
     //サウンド関連*****************************************************************
     //サウンドの裏拍数
-    var offBeatNum = 1
+    var noteNumPerBeat = 1
     //サウンド・ボリューム
     //Heavy
     var downBeatVolumeHeavy = 0.7f
