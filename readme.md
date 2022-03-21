@@ -1,6 +1,9 @@
-# MyConductor a new type metronome
+# MyConductor: a new type metronome
 
-"MyConductor" is a new type metronome for reading or for nurturing music.
+"MyConductor" is a new type metronome for reading score or for nurturing music.
+
+<img src="https://user-images.githubusercontent.com/78600802/159227319-eabf1da8-e2ee-49ad-8bb5-40963a81a08b.svg" width="300">
+(https://play.google.com/store/apps/details?id=music.elsystem.myconductor)
 
 # Simple Demo
 
