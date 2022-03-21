@@ -1,21 +1,21 @@
 # MyConductor: a new type metronome
 
-"MyConductor" is a new type metronome.
-The app graphically displays the trajectory of the conductor's tact. 
+"MyConductor" is a new type metronome.<br>
+The app graphically displays the trajectory of the conductor's tact. <br>
 It works on android.(I tested on android 11 smartphone.)
-
-This app is free because it is for my program development practice.
-Please use and evaluate!
 
 <a href="https://play.google.com/store/apps/details?id=music.elsystem.myconductor">
   <img src="https://user-images.githubusercontent.com/78600802/159227319-eabf1da8-e2ee-49ad-8bb5-40963a81a08b.svg" width="300">
 </a>
 
+This app is free because it is for my program development practice.
+Please use and evaluate!
+
 # Short Demo
 
 First, please see the short demonstration below,
 
-https://user-images.githubusercontent.com/78600802/159226141-6532c8d5-80ec-46f7-a43a-583a1a2cfc21.mp4
+https://user-images.githubusercontent.com/78600802/159238157-88d631d6-7d4c-4f77-a9c5-ee446c956f81.mp4
 
 # Who is suitable to use this?
 
