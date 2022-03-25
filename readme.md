@@ -8,7 +8,7 @@ It works on android.(I tested on android 11 smartphone.)
   <img src="https://user-images.githubusercontent.com/78600802/159227319-eabf1da8-e2ee-49ad-8bb5-40963a81a08b.svg" width="300">
 </a>
 
-This app is free because it is for my program development practice.
+This app is free because It is still a test version.
 Please use and evaluate!
 
 # Short Demo
